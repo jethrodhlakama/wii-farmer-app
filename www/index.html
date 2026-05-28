@@ -1,194 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  const token = sessionStorage.getItem('wii_token');
+  const role  = sessionStorage.getItem('wii_role');
+  if (!token || role !== 'farmer') {
+    window.location.href = '/login?role=farmer';
+  }
+})();
+function logout() {
+  sessionStorage.removeItem('wii_token');
+  sessionStorage.removeItem('wii_role');
+  sessionStorage.removeItem('wii_username');
+  window.location.href = '/login';
+}
+</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#12c44a"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="WII System"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<script>window.gmapsReady=false;</script>
+<script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0N-dbzbBw73TMYTShKhf09znHxiwxqII&libraries=geometry&callback=onGmapsLoad"></script>
 <title>WII — Weather Index Insurance</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 :root{
-  --g:#12c44a;--gd:#0a8f35;--gdim:#0d3320;--gold:#f0c040;
-  --blue:#40a0f8;--red:#ff4455;--teal:#18c4a0;
+  --green:#12c44a;--green-dark:#0a8f35;--green-dim:#0d3320;
+  --gold:#f0c040;--gold-dim:#3a2e00;--blue:#40a0f8;
+  --red:#ff4455;--teal:#18c4a0;
   --bg:#060f08;--bg2:#0b1a0f;--bg3:#0f2416;
-  --bdr:rgba(18,196,74,0.15);--bdr2:rgba(18,196,74,0.28);
-  --txt:#e8f5ec;--muted:#5a8a68;
-  --r:14px;--rsm:10px;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --border:rgba(18,196,74,0.15);--border2:rgba(18,196,74,0.28);
+  --text:#e8f5ec;--muted:#5a8a68;
+  --shadow:0 8px 32px rgba(0,0,0,0.4);
+  --radius:16px;--radius-sm:10px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
-html,body{height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:antialiased;}
-#app{height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden;}
-#app::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(18,196,74,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(18,196,74,0.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
-.screen{display:none;flex-direction:column;height:100%;position:relative;z-index:1;}
-.screen.active{display:flex;}
-.sb{flex:1;overflow-y:auto;padding:14px 14px calc(70px + var(--safe-bot));-webkit-overflow-scrolling:touch;}
-.sb::-webkit-scrollbar{display:none;}
-.topbar{background:rgba(6,15,8,0.97);border-bottom:1px solid var(--bdr);padding:calc(12px + var(--safe-top)) 14px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.tb-back{background:none;border:1px solid var(--bdr);border-radius:8px;color:var(--g);padding:6px 11px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.tb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;flex:1;}
-.tb-act{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;}
-.gnav{background:rgba(6,15,8,0.97);border-bottom:1px solid var(--bdr);padding:calc(12px + var(--safe-top)) 14px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.brand{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--g);}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(18,196,74,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(18,196,74,0.03) 1px,transparent 1px);background-size:38px 38px;pointer-events:none;}
+.screen{display:none;min-height:100vh;position:relative;z-index:1;}
+.screen.active{display:flex;flex-direction:column;}
+.screen-body{flex:1;overflow-y:auto;padding:16px 16px calc(80px + var(--safe-bot));}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(6,15,8,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:calc(14px + var(--safe-top)) 16px 14px;display:flex;align-items:center;gap:10px;}
+.topbar-back{background:none;border:1px solid var(--border);border-radius:8px;color:var(--green);padding:6px 12px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex:1;}
+.topbar-action{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;}
+.navbar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(6,15,8,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:6px 0 max(10px,env(safe-area-inset-bottom));}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 4px;color:var(--muted);transition:color .2s;font-size:10px;background:none;border:none;font-family:'DM Sans',sans-serif;}
+.nav-btn.active{color:var(--green);}
+.nav-btn svg{width:22px;height:22px;}
+.nav-indicator{width:4px;height:4px;border-radius:50%;background:var(--green);opacity:0;transition:opacity .2s;margin-top:1px;}
+.nav-btn.active .nav-indicator{opacity:1;}
+.global-nav{position:sticky;top:0;z-index:200;background:rgba(6,15,8,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:calc(12px + var(--safe-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between;}
+.brand{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--green);}
 .brand span{color:var(--gold);}
-.nbadge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
-.ndot{width:7px;height:7px;border-radius:50%;background:var(--g);animation:blink 2s infinite;}
+.net-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.net-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 2s infinite;}
+.net-dot.on{background:var(--green);}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-.navbar{position:absolute;bottom:0;left:0;right:0;background:rgba(6,15,8,0.98);border-top:1px solid var(--bdr);display:flex;padding:6px 0 calc(8px + var(--safe-bot));z-index:20;}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:5px 2px;color:var(--muted);font-size:9px;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .2s;}
-.nb.on{color:var(--g);}
-.nb .ic{font-size:22px;line-height:1;}
-.nb .dot{width:4px;height:4px;border-radius:50%;background:var(--g);opacity:0;transition:opacity .2s;}
-.nb.on .dot{opacity:1;}
-.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:12px;animation:fu .3s ease both;}
-@keyframes fu{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
-.clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--g);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.clbl::after{content:'';flex:1;height:1px;background:var(--bdr);}
-.hero{background:linear-gradient(140deg,var(--bg2) 0%,#0d2518 50%,var(--gdim) 100%);border:1px solid var(--bdr);border-radius:18px;padding:20px 16px;margin-bottom:14px;position:relative;overflow:hidden;animation:fu .3s ease both;}
-.hero::after{content:'🌾';position:absolute;right:-6px;bottom:-10px;font-size:72px;opacity:.06;pointer-events:none;}
-.htag{display:inline-block;background:rgba(18,196,74,0.1);border:1px solid rgba(18,196,74,0.22);border-radius:20px;font-size:9px;color:var(--g);padding:2px 8px;margin-bottom:8px;}
-.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;line-height:1.15;margin-bottom:6px;}
-.hero h1 em{color:var(--g);font-style:normal;}
-.hero p{font-size:11px;color:var(--muted);line-height:1.6;}
-.hstats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px;}
-.hs{background:rgba(0,0,0,0.28);border-radius:10px;padding:9px 4px;text-align:center;}
-.hs-v{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--g);}
-.hs-l{font-size:8px;color:var(--muted);margin-top:1px;}
-.agrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
-.atile{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 10px 13px;cursor:pointer;transition:all .15s;text-align:center;animation:fu .3s ease both;-webkit-user-select:none;user-select:none;}
-.atile:active{transform:scale(.96);opacity:.85;}
-.atile-ic{font-size:28px;margin-bottom:6px;}
-.atile-lbl{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;}
-.atile-sub{font-size:9px;color:var(--muted);margin-top:2px;}
-.flbl{display:block;font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
-.fin,.fsel{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rsm);padding:12px 12px;color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
-.fin:focus,.fsel:focus{border-color:var(--g);}
-.fin::placeholder{color:var(--muted);}
-.fgrp{margin-bottom:12px;}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-.fsec{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--g);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
-.fsec::after{content:'';flex:1;height:1px;background:var(--bdr);}
-.btn{display:block;width:100%;padding:14px;border-radius:11px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;text-align:center;-webkit-user-select:none;user-select:none;}
-.btn+.btn{margin-top:9px;}
-.btn-g{background:var(--g);color:#000;}
-.btn-g:active{background:#0fad40;transform:scale(.98);}
-.btn-g:disabled{background:var(--gdim);color:var(--muted);cursor:not-allowed;}
-.btn-o{background:none;border:1px solid var(--g);color:var(--g);}
-.btn-o:active{background:rgba(18,196,74,.08);transform:scale(.98);}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;animation:fadeUp .4s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.card:nth-child(2){animation-delay:.05s;}.card:nth-child(3){animation-delay:.10s;}.card:nth-child(4){animation-delay:.15s;}
+.card-label{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.card-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.hero{background:linear-gradient(140deg,var(--bg2) 0%,#0d2518 50%,var(--green-dim) 100%);border:1px solid var(--border);border-radius:20px;padding:24px 20px;margin-bottom:18px;position:relative;overflow:hidden;}
+.hero::after{content:'🌾';position:absolute;right:-8px;bottom:-12px;font-size:80px;opacity:.06;pointer-events:none;}
+.hero-tag{display:inline-block;background:rgba(18,196,74,0.12);border:1px solid rgba(18,196,74,0.25);border-radius:20px;font-size:10px;color:var(--green);padding:3px 10px;margin-bottom:10px;letter-spacing:.5px;font-weight:500;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;line-height:1.15;margin-bottom:8px;}
+.hero h1 em{color:var(--green);font-style:normal;}
+.hero p{font-size:12px;color:var(--muted);line-height:1.65;}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px;}
+.hstat{background:rgba(0,0,0,0.28);border-radius:12px;padding:10px 6px;text-align:center;}
+.hstat-val{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--green);}
+.hstat-lbl{font-size:9px;color:var(--muted);margin-top:2px;}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.action-tile{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 12px 14px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden;}
+.action-tile:active{transform:scale(.97);}
+.action-tile::before{content:'';position:absolute;inset:0;background:var(--tile-color,var(--green));opacity:0;transition:opacity .2s;}
+.action-tile:hover::before{opacity:.04;}
+.tile-icon{font-size:28px;margin-bottom:8px;}
+.tile-label{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--tile-color,var(--green));}
+.tile-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.fgroup{margin-bottom:14px;}
+.flabel{display:block;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;}
+.finput,.fselect{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+.finput:focus,.fselect:focus{border-color:var(--green);}
+.finput::placeholder{color:var(--muted);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fsection{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--green);margin:18px 0 12px;display:flex;align-items:center;gap:8px;}
+.fsection::after{content:'';flex:1;height:1px;background:var(--border);}
+.premium-result{background:linear-gradient(135deg,rgba(240,192,64,.07),rgba(18,196,74,.07));border:1px solid rgba(240,192,64,.22);border-radius:14px;padding:18px;text-align:center;margin-bottom:16px;}
+.prem-amount{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;color:var(--gold);}
+.prem-monthly{font-size:13px;color:var(--muted);margin-top:4px;}
+.prem-table{margin-top:14px;text-align:left;}
+.prem-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--muted);}
+.prem-row:last-child{border:none;font-weight:600;color:var(--gold);font-size:13px;}
+.prem-row span:last-child{color:var(--text);}
+.btn{display:block;width:100%;padding:15px;border-radius:12px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;}
+.btn-green{background:var(--green);color:#000;}
+.btn-green:hover{background:#0fad40;}
+.btn-green:disabled{background:var(--green-dim);color:var(--muted);cursor:not-allowed;}
 .btn-gold{background:var(--gold);color:#000;}
-.btn-gold:active{opacity:.85;transform:scale(.98);}
-.btn-sm{width:auto;display:inline-block;padding:8px 14px;font-size:12px;border-radius:8px;}
-.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px;}
-.ct{background:var(--bg3);border:2px solid var(--bdr);border-radius:12px;padding:13px 8px;text-align:center;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
-.ct.sel{border-color:var(--g);background:var(--gdim);}
-.ct:active{transform:scale(.96);}
-.ct-em{font-size:26px;margin-bottom:4px;}
-.ct-nm{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
-.ct-ml{font-size:9px;color:var(--muted);margin-top:1px;}
-.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
-.pm-tile{background:var(--bg2);border:2px solid var(--bdr);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
-.pm-tile.sel{border-color:var(--g);background:var(--bg3);}
-.pm-tile:active{transform:scale(.96);}
-.pm-ic{font-size:24px;margin-bottom:4px;}
-.pm-nm{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;}
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
-.b-active{background:rgba(18,196,74,.14);color:var(--g);}
+.btn-out{background:none;border:1px solid var(--green);color:var(--green);}
+.btn-red{background:rgba(255,68,85,.12);border:1px solid rgba(255,68,85,.3);color:var(--red);}
+.btn+.btn{margin-top:10px;}
+.btn-sm{width:auto;display:inline-block;padding:8px 16px;font-size:13px;border-radius:8px;}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.pm-tile{background:var(--bg2);border:2px solid var(--border);border-radius:14px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;}
+.pm-tile.sel{border-color:var(--green);background:var(--bg3);}
+.pm-tile:active{transform:scale(.97);}
+.pm-icon{font-size:26px;margin-bottom:6px;}
+.pm-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-active{background:rgba(18,196,74,.14);color:var(--green);}
 .b-paid{background:rgba(240,192,64,.14);color:var(--gold);}
 .b-claimed{background:rgba(255,68,85,.14);color:var(--red);}
-.pol-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:13px;margin-bottom:10px;animation:fu .3s ease both;}
-.pol-id{font-size:9px;font-family:monospace;color:var(--muted);margin-bottom:3px;}
-.pol-nm{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;}
-.pol-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:8px;}
-.pm-item{font-size:10px;color:var(--muted);}
-.pm-item span{color:var(--txt);}
-.pol-ft{display:flex;align-items:center;justify-content:space-between;}
-.iot-big{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;text-align:center;margin:6px 0;}
-.iot-bg{background:var(--bg3);border-radius:20px;height:10px;overflow:hidden;margin:8px 0;}
-.iot-fill{height:100%;border-radius:20px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
-.rrow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:14px;}
-.rcol{text-align:center;}
-.rbar-w{height:52px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.rbar{width:22px;border-radius:3px 3px 0 0;min-height:4px;transition:height .7s ease;}
-.rday{font-size:8px;color:var(--muted);}
-.rmm{font-size:9px;font-weight:600;}
-.chat-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden;}
-.chat-msgs{flex:1;overflow-y:auto;padding:10px 0;display:flex;flex-direction:column;gap:8px;}
-.chat-msgs::-webkit-scrollbar{display:none;}
-.cmsg{max-width:84%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55;white-space:pre-line;animation:fu .2s ease;}
-.cmsg.bot{align-self:flex-start;background:var(--bg2);border:1px solid var(--bdr);border-radius:3px 12px 12px 12px;}
-.cmsg.usr{align-self:flex-end;background:var(--gdim);border:1px solid var(--bdr2);border-radius:12px 3px 12px 12px;}
-.chat-ft{padding:9px 0 calc(9px + var(--safe-bot));display:flex;gap:7px;flex-shrink:0;}
-.chat-inp{flex:1;background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:11px 13px;color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;}
-.chat-inp:focus{border-color:var(--g);}
-.chat-snd{background:var(--g);border:none;border-radius:10px;width:46px;font-size:16px;cursor:pointer;}
-.prem-res{background:linear-gradient(135deg,rgba(240,192,64,.07),rgba(18,196,74,.07));border:1px solid rgba(240,192,64,.2);border-radius:12px;padding:15px;text-align:center;margin-bottom:12px;}
-.prem-amt{font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--gold);}
-.prem-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--bdr);color:var(--muted);}
-.prem-row:last-child{border:none;font-weight:600;color:var(--gold);font-size:12px;}
-.prem-row span:last-child{color:var(--txt);}
-.cov-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;}
-.cov-tile{background:var(--bg3);border:2px solid var(--bdr);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
-.cov-tile.sel{border-color:var(--g);background:var(--gdim);}
-.hint{font-size:10px;color:var(--muted);padding:8px 11px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--g);line-height:1.6;margin-bottom:12px;}
-.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:rot .6s linear infinite;vertical-align:middle;margin-right:5px;}
-@keyframes rot{to{transform:rotate(360deg);}}
-.flow-row{font-size:11px;line-height:2.1;color:var(--muted);}
-#toast{position:absolute;bottom:74px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;padding:10px 16px;font-size:12px;z-index:999;opacity:0;transition:all .25s;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.b-offline{background:rgba(90,138,104,.14);color:var(--muted);}
+.pol-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;animation:fadeUp .35s ease both;}
+.pol-id{font-size:10px;font-family:monospace;color:var(--muted);margin-bottom:4px;}
+.pol-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:10px;}
+.pol-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;}
+.pm-item{font-size:11px;color:var(--muted);}
+.pm-item span{color:var(--text);}
+.pol-footer{display:flex;align-items:center;justify-content:space-between;}
+.iot-big{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;text-align:center;margin:8px 0;}
+.iot-bar-bg{background:var(--bg3);border-radius:20px;height:10px;overflow:hidden;margin:8px 0;}
+.iot-bar-fill{height:100%;border-radius:20px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.readings-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px;}
+.r-col{text-align:center;}
+.r-bar-wrap{height:56px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;}
+.r-bar{width:22px;border-radius:4px 4px 0 0;min-height:4px;transition:height .7s ease;}
+.r-day{font-size:9px;color:var(--muted);}
+.r-mm{font-size:10px;font-weight:600;}
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 140px);}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 0;display:flex;flex-direction:column;gap:10px;}
+.cmsg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.55;white-space:pre-line;animation:fadeUp .25s ease;}
+.cmsg.bot{align-self:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:4px 14px 14px 14px;}
+.cmsg.usr{align-self:flex-end;background:var(--green-dim);border:1px solid var(--border2);border-radius:14px 4px 14px 14px;}
+.chat-footer{padding:10px 0 4px;display:flex;gap:8px;}
+.chat-inp{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;}
+.chat-inp:focus{border-color:var(--green);}
+.chat-send{background:var(--green);border:none;border-radius:10px;width:46px;font-size:16px;cursor:pointer;flex-shrink:0;}
+#toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:11px 20px;font-size:13px;z-index:999;opacity:0;transition:all .28s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis;box-shadow:var(--shadow);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 #toast.err{border-color:var(--red);color:var(--red);}
-.empty{text-align:center;padding:40px 16px;color:var(--muted);}
-.empty-ic{font-size:44px;opacity:.45;margin-bottom:10px;}
+#offlineBanner{display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(58,46,0,.95);border-bottom:1px solid var(--gold);padding:8px 16px;font-size:12px;color:var(--gold);text-align:center;}
+#offlineBanner.show{display:block;}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:rotate .7s linear infinite;vertical-align:middle;}
+@keyframes rotate{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:44px 20px;color:var(--muted);}
+.empty-icon{font-size:44px;opacity:.5;margin-bottom:12px;}
+.empty p{font-size:13px;line-height:1.65;}
+.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.crop-tile{background:var(--bg3);border:2px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;}
+.crop-tile.sel{border-color:var(--green);background:var(--green-dim);}
+.crop-tile:active{transform:scale(.96);}
+.crop-emoji{font-size:28px;margin-bottom:5px;}
+.crop-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+.crop-mult{font-size:10px;color:var(--muted);margin-top:2px;}
+#farmMap{width:100%;height:300px;border-radius:var(--radius-sm);border:1px solid var(--border2);margin-top:6px;background:#1a2a1a;display:flex;align-items:center;justify-content:center;}
+#farmMap.loaded{display:block;}
+.map-loading{color:var(--muted);font-size:13px;text-align:center;}
+.map-btns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.map-btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.map-btn:hover{border-color:var(--green);color:var(--green);}
+.map-btn.on{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.map-info{margin-top:8px;padding:10px 13px;border-radius:8px;background:var(--bg3);font-size:12px;color:var(--muted);line-height:1.6;}
+.map-info strong{color:var(--green);}
+.cov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.cov-tile{background:var(--bg3);border:2px solid var(--border);border-radius:14px;padding:16px 10px;cursor:pointer;text-align:center;transition:all .2s;}
+.cov-tile.sel{border-color:var(--green);background:var(--green-dim);}
+.hint{font-size:11px;color:var(--muted);padding:8px 12px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--green);line-height:1.7;margin-bottom:12px;}
 </style>
 </head>
 <body>
-<div id="app">
+<div id="offlineBanner">📡 You're offline — changes will sync when reconnected</div>
 <div id="toast"></div>
 
-<!-- ═══ HOME ═══ -->
+<!-- HOME -->
 <div class="screen active" id="s-home">
-  <nav class="gnav">
+  <nav class="global-nav">
     <div class="brand">WII <span>System</span></div>
-    <div class="nbadge"><div class="ndot"></div><span id="netTxt">Live</span></div>
+    <div class="net-badge"><div class="net-dot" id="netDot"></div><span id="netTxt">Connecting...</span></div>
   </nav>
-  <div class="sb">
-    <div class="hero">
-      <div class="htag">🌾 Maize · IoT · Blockchain · AI</div>
+  <div class="screen-body">
+    <div class="hero" style="animation:fadeUp .4s ease both">
+      <div class="hero-tag">🌾 Maize · IoT · Blockchain · AI</div>
       <h1>Weather<br/><em>Index Insurance</em></h1>
       <p>Automated rainfall-based crop protection. IoT sensors detect drought — blockchain triggers your payout instantly.</p>
-      <div class="hstats">
-        <div class="hs"><div class="hs-v" id="h-pol">0</div><div class="hs-l">Policies</div></div>
-        <div class="hs"><div class="hs-v" id="h-rain">--</div><div class="hs-l">7-Day mm</div></div>
-        <div class="hs"><div class="hs-v" id="h-blk">187</div><div class="hs-l">Blocks</div></div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-val" id="h-policies">0</div><div class="hstat-lbl">Policies</div></div>
+        <div class="hstat"><div class="hstat-val" id="h-rain">--</div><div class="hstat-lbl">7-Day mm</div></div>
+        <div class="hstat"><div class="hstat-val" id="h-blocks">0</div><div class="hstat-lbl">Blocks</div></div>
       </div>
     </div>
-    <div class="agrid">
-      <div class="atile" onclick="go('s-reg');nb('nb-reg')" style="animation-delay:.05s">
-        <div class="atile-ic">📋</div>
-        <div class="atile-lbl" style="color:var(--g)">Register Policy</div>
-        <div class="atile-sub">Submit to blockchain</div>
-      </div>
-      <div class="atile" onclick="go('s-pay');nb('nb-pay')" style="animation-delay:.1s">
-        <div class="atile-ic">💳</div>
-        <div class="atile-lbl" style="color:var(--gold)">Pay Premium</div>
-        <div class="atile-sub">EcoCash · Card · Bank</div>
-      </div>
-      <div class="atile" onclick="go('s-iot');nb('nb-iot');loadIoT()" style="animation-delay:.15s">
-        <div class="atile-ic">📡</div>
-        <div class="atile-lbl" style="color:var(--blue)">Realtime Data</div>
-        <div class="atile-sub">Rain gauge · 7-day</div>
-      </div>
-      <div class="atile" onclick="go('s-pol');nb('nb-pol');loadPolicies()" style="animation-delay:.2s">
-        <div class="atile-ic">🗂️</div>
-        <div class="atile-lbl" style="color:var(--teal)">My Policies</div>
-        <div class="atile-sub">View all records</div>
-      </div>
+    <div class="action-grid">
+      <div class="action-tile" style="--tile-color:var(--green)" onclick="go('s-register')"><div class="tile-icon">📋</div><div class="tile-label">Register Policy</div><div class="tile-sub">Submit to blockchain</div></div>
+      <div class="action-tile" style="--tile-color:var(--gold)" onclick="go('s-pay')"><div class="tile-icon">💳</div><div class="tile-label">Pay Premium</div><div class="tile-sub">EcoCash · Card · Bank</div></div>
+      <div class="action-tile" style="--tile-color:var(--blue)" onclick="go('s-iot')"><div class="tile-icon">📡</div><div class="tile-label">Realtime Data</div><div class="tile-sub">Rain gauge · 7-day</div></div>
+      <div class="action-tile" style="--tile-color:var(--teal)" onclick="go('s-policies')"><div class="tile-icon">🗂️</div><div class="tile-label">My Policies</div><div class="tile-sub">View all records</div></div>
     </div>
     <div class="card">
-      <div class="clbl">⚡ How Payouts Work</div>
-      <div class="flow-row">
+      <div class="card-label">⚡ How Payouts Work</div>
+      <div style="font-size:12px;line-height:2.1;color:var(--muted)">
         <div>📡 Rain gauge records daily mm total</div>
         <div>🔁 Node-RED accumulates 7-day rolling total</div>
         <div>⚡ If total &lt; WRSI threshold → breach detected</div>
@@ -199,46 +220,54 @@ body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:an
     </div>
   </div>
   <nav class="navbar">
-    <button class="nb on" id="nb-home" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
-    <button class="nb" id="nb-reg"  onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
-    <button class="nb" id="nb-iot"  onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
-    <button class="nb" id="nb-pol"  onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
-    <button class="nb" id="nb-chat" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+    <button class="nav-btn active" id="nb-home" onclick="go('s-home');nb('nb-home')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home<div class="nav-indicator"></div></button>
+    <button class="nav-btn" id="nb-register" onclick="go('s-register');nb('nb-register')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Register<div class="nav-indicator"></div></button>
+    <button class="nav-btn" id="nb-iot" onclick="go('s-iot');nb('nb-iot');loadIoT()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>IoT<div class="nav-indicator"></div></button>
+    <button class="nav-btn" id="nb-policies" onclick="go('s-policies');nb('nb-policies');loadPolicies()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Policies<div class="nav-indicator"></div></button>
+    <button class="nav-btn" id="nb-chat" onclick="go('s-chat');nb('nb-chat');initChat()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>AI Help<div class="nav-indicator"></div></button>
   </nav>
 </div>
 
-<!-- ═══ REGISTER ═══ -->
-<div class="screen" id="s-reg">
-  <div class="topbar">
-    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
-    <div class="tb-title">Register Policy</div>
-  </div>
-  <div class="sb">
-    <div class="fsec">👤 Farmer Details</div>
-    <div class="fgrp"><label class="flbl">Full Name *</label><input class="fin" id="rn" placeholder="e.g. John Moyo" autocomplete="name"/></div>
+<!-- REGISTER -->
+<div class="screen" id="s-register">
+  <div class="topbar"><button class="topbar-back" onclick="go('s-home')">← Back</button><div class="topbar-title">Register Policy</div></div>
+  <div class="screen-body">
+    <div class="fsection">👤 Farmer Details</div>
+    <div class="fgroup"><label class="flabel">Full Name *</label><input class="finput" id="rn" placeholder="e.g. John Moyo"/></div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">National ID *</label><input class="fin" id="rid" placeholder="63-123456A21"/></div>
-      <div class="fgrp"><label class="flbl">Phone *</label><input class="fin" id="rph" placeholder="+263771234567" type="tel"/></div>
+      <div class="fgroup"><label class="flabel">National ID *</label><input class="finput" id="rid" placeholder="63-123456A21"/></div>
+      <div class="fgroup"><label class="flabel">Phone *</label><input class="finput" id="rph" placeholder="+263771234567" type="tel"/></div>
     </div>
-    <div class="fgrp"><label class="flbl">Email (payout alerts)</label><input class="fin" id="rem" placeholder="email@example.com" type="email"/></div>
+    <div class="fgroup"><label class="flabel">Email (payout alerts)</label><input class="finput" id="rem" placeholder="email@example.com" type="email"/></div>
 
-    <div class="fsec">🌾 Crop Type *</div>
+    <div class="fsection">🌾 Crop Type *</div>
     <div class="crop-grid">
-      <div class="ct" id="crop-maize"   onclick="selCrop('maize')"><div class="ct-em">🌽</div><div class="ct-nm">Maize</div><div class="ct-ml">×1.00 premium</div></div>
-      <div class="ct" id="crop-tobacco" onclick="selCrop('tobacco')"><div class="ct-em">🍃</div><div class="ct-nm">Tobacco</div><div class="ct-ml">×1.35 premium</div></div>
-      <div class="ct" id="crop-cotton"  onclick="selCrop('cotton')"><div class="ct-em">☁️</div><div class="ct-nm">Cotton</div><div class="ct-ml">×1.25 premium</div></div>
-      <div class="ct" id="crop-sorghum" onclick="selCrop('sorghum')"><div class="ct-em">🌾</div><div class="ct-nm">Sorghum/Millet</div><div class="ct-ml">×0.85 premium</div></div>
+      <div class="crop-tile" id="crop-maize" onclick="selectCrop('maize')"><div class="crop-emoji">🌽</div><div class="crop-name">Maize</div><div class="crop-mult">×1.00 premium</div></div>
+      <div class="crop-tile" id="crop-tobacco" onclick="selectCrop('tobacco')"><div class="crop-emoji">🍃</div><div class="crop-name">Tobacco</div><div class="crop-mult">×1.35 premium</div></div>
+      <div class="crop-tile" id="crop-cotton" onclick="selectCrop('cotton')"><div class="crop-emoji">☁️</div><div class="crop-name">Cotton</div><div class="crop-mult">×1.25 premium</div></div>
+      <div class="crop-tile" id="crop-sorghum" onclick="selectCrop('sorghum')"><div class="crop-emoji">🌾</div><div class="crop-name">Sorghum/Millet</div><div class="crop-mult">×0.85 premium</div></div>
     </div>
     <input type="hidden" id="rcrop" value=""/>
 
-    <div class="fsec">🌱 Farm Details</div>
-    <div class="frow">
-      <div class="fgrp"><label class="flbl">Farm Size (acres) *</label><input class="fin" id="rsz" placeholder="e.g. 5.0" type="number" step="0.01" inputmode="decimal" oninput="refreshPreview()"/></div>
-      <div class="fgrp"><label class="flbl">GPS Coordinates</label><input class="fin" id="rgps" placeholder="-19.01, 29.15"/></div>
+    <div class="fsection">🌱 Farm Details</div>
+    <div class="fgroup">
+      <label class="flabel">📍 Draw Farm Boundary — Satellite Map *</label>
+      <div id="farmMap"><div class="map-loading">⏳ Loading satellite map…</div></div>
+      <div class="map-btns">
+        <button type="button" class="map-btn on" id="btn-draw" onclick="setDrawMode(true)">✏️ Draw Boundary</button>
+        <button type="button" class="map-btn" id="btn-locate" onclick="locateMe()">📍 My Location</button>
+        <button type="button" class="map-btn" onclick="undoPoint()">↩ Undo</button>
+        <button type="button" class="map-btn" onclick="clearBoundary()">🗑 Clear</button>
+      </div>
+      <div class="map-info" id="mapInfo">Tap <strong>Draw Boundary</strong> then tap each corner of your farm on the map.</div>
     </div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Region *</label>
-        <select class="fsel" id="rreg">
+      <div class="fgroup"><label class="flabel">Farm Size (acres) *</label><input class="finput" id="rsz" placeholder="Auto-filled from map" type="number" step="0.01"/></div>
+      <div class="fgroup"><label class="flabel">GPS Centre (auto)</label><input class="finput" id="rgps" placeholder="Auto from map" readonly style="opacity:.7"/></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Region *</label>
+        <select class="fselect" id="rreg">
           <option value="">Select region</option>
           <option value="mashonaland">Mashonaland</option>
           <option value="manicaland">Manicaland</option>
@@ -246,8 +275,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:an
           <option value="midlands">Midlands</option>
           <option value="masvingo">Masvingo</option>
         </select></div>
-      <div class="fgrp"><label class="flbl">Soil Type *</label>
-        <select class="fsel" id="rsoil">
+      <div class="fgroup"><label class="flabel">Soil Type *</label>
+        <select class="fselect" id="rsoil">
           <option value="">Select soil</option>
           <option value="loam">Loam</option>
           <option value="sandy">Sandy</option>
@@ -255,9 +284,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:an
         </select></div>
     </div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Season *</label><input class="fin" id="rssn" placeholder="2025/2026"/></div>
-      <div class="fgrp"><label class="flbl">Payment Method</label>
-        <select class="fsel" id="rpm">
+      <div class="fgroup"><label class="flabel">Season *</label><input class="finput" id="rssn" placeholder="2025/2026"/></div>
+      <div class="fgroup"><label class="flabel">Payment Method</label>
+        <select class="fselect" id="rpm">
           <option value="ecocash">EcoCash</option>
           <option value="onemoney">OneMoney</option>
           <option value="card">Card</option>
@@ -265,110 +294,85 @@ body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:an
         </select></div>
     </div>
 
-    <div class="fsec">🛡️ Cover Type *</div>
+    <div class="fsection">🛡️ Cover Type *</div>
     <div class="cov-grid">
-      <div class="cov-tile sel" id="ct-full" onclick="setCover('full')">
-        <div style="font-size:24px;margin-bottom:4px">🛡️</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--g)">Full Cover</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4">Inputs + Yield Loss<br/>Higher payout</div>
-      </div>
-      <div class="cov-tile" id="ct-partial" onclick="setCover('partial')">
-        <div style="font-size:24px;margin-bottom:4px">🌿</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted)">Partial Cover</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4">Inputs Only<br/>Lower premium</div>
-      </div>
+      <div class="cov-tile sel" id="ct-full" onclick="setCover('full')"><div style="font-size:26px;margin-bottom:6px">🛡️</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--green)">Full Cover</div><div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5">Inputs + Yield Loss<br/>Higher payout &amp; premium</div></div>
+      <div class="cov-tile" id="ct-partial" onclick="setCover('partial')"><div style="font-size:26px;margin-bottom:6px">🌿</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted)">Partial Cover</div><div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5">Inputs Only<br/>Lower premium</div></div>
     </div>
     <input type="hidden" id="rcoverType" value="full"/>
+    <div class="hint"><strong style="color:var(--green)">Full Cover:</strong> pays out inputs cost + expected yield value when rainfall fails.<br/><strong style="color:var(--gold)">Partial Cover:</strong> pays out inputs cost only — lower risk, lower premium.</div>
 
-    <div class="hint">
-      <strong style="color:var(--g)">Full Cover:</strong> pays inputs + expected yield when rainfall fails.<br/>
-      <strong style="color:var(--gold)">Partial Cover:</strong> pays inputs cost only — lower premium.
+    <div class="fsection">👥 Insurance Type *</div>
+    <div class="cov-grid">
+      <div class="cov-tile sel" id="it-single" onclick="setInsType('single')"><div style="font-size:26px;margin-bottom:6px">👤</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--green)">Individual</div><div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5">Own IoT station<br/>Standard premium</div></div>
+      <div class="cov-tile" id="it-group" onclick="setInsType('group')"><div style="font-size:26px;margin-bottom:6px">👥</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted)">Group</div><div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5">Shared IoT station<br/>10% group discount</div></div>
+    </div>
+    <input type="hidden" id="risGroup" value="false"/>
+    <div id="stationField" style="display:none;margin-top:10px;">
+      <label class="flabel">📡 Shared Weather Station ID *</label>
+      <input class="finput" id="rStationID" placeholder="e.g. WS-MASH-001" oninput="this.value=this.value.toUpperCase()"/>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;padding:8px 12px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--gold);line-height:1.7">📡 <strong style="color:var(--gold)">Group Insurance:</strong> All farmers sharing this station ID will be linked. Each farmer pays their own premium.</div>
     </div>
 
-    <div class="fsec">💰 Financial Inputs</div>
-    <div class="frow">
-      <div class="fgrp"><label class="flbl">Input Cost (USD) *</label><input class="fin" id="rinputCost" placeholder="e.g. 300" type="number" step="0.01" inputmode="decimal" oninput="refreshPreview()"/></div>
-      <div class="fgrp"><label class="flbl">Expected Yield (USD)</label><input class="fin" id="ryieldValue" placeholder="e.g. 800" type="number" step="0.01" inputmode="decimal" oninput="refreshPreview()"/></div>
+    <div class="frow" style="margin-top:14px">
+      <div class="fgroup"><label class="flabel">Input Cost (USD) *</label><input class="finput" id="rinputCost" placeholder="e.g. 300" type="number" step="0.01" oninput="refreshPremiumPreview()"/></div>
+      <div class="fgroup"><label class="flabel">Expected Yield (USD)</label><input class="finput" id="ryieldValue" placeholder="e.g. 800" type="number" step="0.01" oninput="refreshPremiumPreview()"/></div>
     </div>
 
-    <div id="coverPreview" style="display:none;background:linear-gradient(135deg,rgba(240,192,64,.07),rgba(18,196,74,.07));border:1px solid rgba(240,192,64,.22);border-radius:12px;padding:13px;margin-bottom:12px;">
-      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Live Premium Estimate</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px" id="prevLabel">Full Cover</span>
-        <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--gold)" id="prevAmt">$0</span>
+    <div id="coverPreview" style="display:none;background:linear-gradient(135deg,rgba(240,192,64,.07),rgba(18,196,74,.07));border:1px solid rgba(240,192,64,.25);border-radius:14px;padding:16px;margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Live Premium Estimate</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--text)" id="previewLabel">Full Cover · Individual</span>
+        <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--gold)" id="previewAmt">$0</span>
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px" id="prevNote"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px" id="previewNote"></div>
     </div>
 
-    <div class="fsec">🧮 ML Dynamic Premium</div>
-    <div id="premBox" style="display:none" class="prem-res">
-      <div class="prem-amt" id="premAmt">$0</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:3px" id="premMo"></div>
-      <div id="premTable" style="margin-top:12px;text-align:left"></div>
+    <div class="fsection">💰 ML Dynamic Premium</div>
+    <div id="premBox" style="display:none" class="premium-result">
+      <div class="prem-amount" id="premAmt">$0</div>
+      <div class="prem-monthly" id="premMo">per year</div>
+      <div class="prem-table" id="premTable"></div>
     </div>
-    <button class="btn btn-o" style="margin-bottom:10px" onclick="calcPremium()">🧮 Calculate ML Premium</button>
-    <button class="btn btn-g" id="submitBtn" onclick="submitPolicy()">⛓️ Submit to Blockchain</button>
-    <button class="btn btn-o" style="margin-top:9px" onclick="clearForm()">🗑 Clear Form</button>
+    <button class="btn btn-out" style="margin-bottom:12px" onclick="calcPremium()">🧮 Calculate ML Premium</button>
+    <button class="btn btn-green" id="submitBtn" onclick="submitPolicy()">⛓️ Submit to Blockchain</button>
+    <button class="btn btn-out" style="margin-top:10px" onclick="clearForm()">Clear Form</button>
   </div>
-  <nav class="navbar">
-    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
-    <button class="nb on" id="nb-reg2"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
-  </nav>
 </div>
 
-<!-- ═══ PAY ═══ -->
+<!-- PAY -->
 <div class="screen" id="s-pay">
-  <div class="topbar">
-    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
-    <div class="tb-title">Pay Premium</div>
-  </div>
-  <div class="sb">
-    <div class="fgrp"><label class="flbl">Policy ID *</label><input class="fin" id="ppid" placeholder="WII-XXXXXXXXXX"/></div>
-    <div class="fgrp"><label class="flbl">Amount (USD) *</label><input class="fin" id="pamt" placeholder="Enter amount" type="number" step="0.01" inputmode="decimal"/></div>
-    <div class="fsec">💳 Choose Payment Method</div>
+  <div class="topbar"><button class="topbar-back" onclick="go('s-home')">← Back</button><div class="topbar-title">Pay Premium</div></div>
+  <div class="screen-body">
+    <div class="fgroup"><label class="flabel">Policy ID *</label><input class="finput" id="ppid" placeholder="WII-XXXXXXXXXX"/></div>
+    <div class="fgroup"><label class="flabel">Amount (USD) *</label><input class="finput" id="pamt" placeholder="Enter amount" type="number" step="0.01"/></div>
+    <div class="fsection">💳 Choose Payment Method</div>
     <div class="pm-grid">
-      <div class="pm-tile" id="pm-ecocash" onclick="selPM('ecocash')"><div class="pm-ic">📱</div><div class="pm-nm" style="color:#00a550">EcoCash</div><div style="font-size:9px;color:var(--muted);margin-top:1px">*151#</div></div>
-      <div class="pm-tile" id="pm-onemoney" onclick="selPM('onemoney')"><div class="pm-ic">📲</div><div class="pm-nm" style="color:#2244cc">OneMoney</div><div style="font-size:9px;color:var(--muted);margin-top:1px">*111#</div></div>
-      <div class="pm-tile" id="pm-card" onclick="selPM('card')"><div class="pm-ic">💳</div><div class="pm-nm" style="color:var(--gold)">Debit/Credit</div><div style="font-size:9px;color:var(--muted);margin-top:1px">Visa · Mastercard</div></div>
-      <div class="pm-tile" id="pm-bank" onclick="selPM('bank')"><div class="pm-ic">🏦</div><div class="pm-nm" style="color:#9060e0">Bank Transfer</div><div style="font-size:9px;color:var(--muted);margin-top:1px">ZIPIT · RTGS</div></div>
+      <div class="pm-tile" id="pm-ecocash" onclick="selPM('ecocash')"><div class="pm-icon">📱</div><div class="pm-name" style="color:#00a550">EcoCash</div><div style="font-size:10px;color:var(--muted);margin-top:2px">*151#</div></div>
+      <div class="pm-tile" id="pm-onemoney" onclick="selPM('onemoney')"><div class="pm-icon">📲</div><div class="pm-name" style="color:#2244cc">OneMoney</div><div style="font-size:10px;color:var(--muted);margin-top:2px">*111#</div></div>
+      <div class="pm-tile" id="pm-card" onclick="selPM('card')"><div class="pm-icon">💳</div><div class="pm-name" style="color:var(--gold)">Debit/Credit</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Visa · Mastercard</div></div>
+      <div class="pm-tile" id="pm-bank" onclick="selPM('bank')"><div class="pm-icon">🏦</div><div class="pm-name" style="color:#9060e0">Bank Transfer</div><div style="font-size:10px;color:var(--muted);margin-top:2px">ZIPIT · RTGS</div></div>
     </div>
     <div id="pm-extra"></div>
     <button class="btn btn-gold" onclick="processPayment()">⛓️ Record Payment on Blockchain</button>
   </div>
-  <nav class="navbar">
-    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
-    <button class="nb on" id="nb-pay"><div class="ic">💳</div><div>Pay</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
-  </nav>
 </div>
 
-<!-- ═══ IOT ═══ -->
+<!-- IOT -->
 <div class="screen" id="s-iot">
-  <div class="topbar">
-    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
-    <div class="tb-title">📡 Realtime IoT Data</div>
-    <button class="tb-act" onclick="loadIoT()">🔄</button>
-  </div>
-  <div class="sb">
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <input class="fin" id="iotFarm" placeholder="Farm ID e.g. FARM001" style="flex:1"/>
-      <button class="btn btn-g btn-sm" onclick="loadIoT()">Load</button>
-    </div>
+  <div class="topbar"><button class="topbar-back" onclick="go('s-home')">← Back</button><div class="topbar-title">📡 Realtime IoT Data</div><button class="topbar-action" onclick="loadIoT()">🔄</button></div>
+  <div class="screen-body">
+    <div class="frow" style="margin-bottom:12px"><input class="finput" id="iotFarm" placeholder="Farm ID e.g. FARM001"/><button class="btn btn-green btn-sm" onclick="loadIoT()">Load</button></div>
     <div class="card">
       <div class="iot-big" id="iotTotal">-- mm</div>
-      <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:7px" id="iotMeta">7-Day Total | Stage: MATURATION | Threshold: 30mm</div>
-      <div class="iot-bg"><div class="iot-fill" id="iotBar" style="width:0%;background:var(--g)"></div></div>
-      <div style="text-align:center;font-size:12px;font-weight:600;padding:6px 0" id="iotStatus">Enter Farm ID and tap Load</div>
-      <div class="rrow" id="rRow"></div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px" id="iotMeta">7-Day Total | Stage: maturation | Threshold: 30mm</div>
+      <div class="iot-bar-bg"><div class="iot-bar-fill" id="iotBar" style="width:0%;background:var(--green)"></div></div>
+      <div style="text-align:center;font-size:13px;font-weight:600;padding:6px 0" id="iotStatus">Enter Farm ID and tap Load</div>
+      <div class="readings-row" id="readingsRow"></div>
     </div>
     <div class="card">
-      <div class="clbl">WRSI Thresholds — Maize</div>
-      <div style="font-size:11px;line-height:2.1">
+      <div class="card-label">WRSI Thresholds — Maize</div>
+      <div style="font-size:12px;line-height:2.1">
         <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Sowing (0–21 days)</span><span>20 mm</span></div>
         <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Germination (21–35)</span><span>15 mm</span></div>
         <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Establishment (35–70)</span><span>25 mm</span></div>
@@ -377,194 +381,323 @@ body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:an
       </div>
     </div>
   </div>
-  <nav class="navbar">
-    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
-    <button class="nb on" id="nb-iot2"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
-  </nav>
 </div>
 
-<!-- ═══ POLICIES ═══ -->
-<div class="screen" id="s-pol">
-  <div class="topbar">
-    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
-    <div class="tb-title">🗂️ My Policies</div>
-    <button class="tb-act" onclick="loadPolicies()">🔄</button>
-  </div>
-  <div class="sb">
-    <div id="polList">
-      <div class="empty"><div class="empty-ic">📋</div><p style="font-size:12px;line-height:1.65">No policies yet.<br/>Register your first policy to get started.</p><br/><button class="btn btn-g btn-sm" onclick="go('s-reg');nb('nb-reg')">Register Now</button></div>
-    </div>
-  </div>
-  <nav class="navbar">
-    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
-    <button class="nb on" id="nb-pol2"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
-  </nav>
+<!-- POLICIES -->
+<div class="screen" id="s-policies">
+  <div class="topbar"><button class="topbar-back" onclick="go('s-home')">← Back</button><div class="topbar-title">🗂️ My Policies</div><button class="topbar-action" onclick="loadPolicies()">🔄</button></div>
+  <div class="screen-body"><div id="polList"><div class="empty"><div class="empty-icon">📋</div><p>No policies yet.<br/>Register your first policy to get started.</p><br/><button class="btn btn-green btn-sm" onclick="go('s-register')">Register Now</button></div></div></div>
 </div>
 
-<!-- ═══ CHAT ═══ -->
+<!-- CHAT -->
 <div class="screen" id="s-chat">
-  <div class="topbar">
-    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
-    <div class="tb-title">🤖 WII Assistant — 24/7</div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0 14px;">
+  <div class="topbar"><button class="topbar-back" onclick="go('s-home')">← Back</button><div class="topbar-title">🤖 WII Assistant — 24/7</div></div>
+  <div class="screen-body" style="padding-bottom:0">
     <div class="chat-wrap">
       <div class="chat-msgs" id="chatMsgs"></div>
-      <div class="chat-ft">
+      <div class="chat-footer">
         <input class="chat-inp" id="chatInp" placeholder="Ask anything about WII..." onkeydown="if(event.key==='Enter')sendChat()"/>
-        <button class="chat-snd" onclick="sendChat()">➤</button>
+        <button class="chat-send" onclick="sendChat()">➤</button>
       </div>
     </div>
   </div>
-  <nav class="navbar">
-    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
-    <button class="nb" onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
-    <button class="nb on" id="nb-chat2"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
-  </nav>
 </div>
-</div><!-- #app -->
 
 <script>
 'use strict';
-const LKEY='wii_v3';
-function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function nb(id){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));const el=document.getElementById(id);if(el)el.classList.add('on');}
+const API_BASE=(()=>{
+  const h=window.location.hostname;
+  if(h==='localhost'||h==='127.0.0.1') return 'http://localhost:5000';
+  return window.location.origin;
+})();
+
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);if(id==='s-register')setTimeout(initMap,250);}
+function nb(id){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');}
 let _tt;
 function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(err?' err':'');clearTimeout(_tt);_tt=setTimeout(()=>t.className='',3200);}
-function selCrop(c){document.getElementById('rcrop').value=c;document.querySelectorAll('.ct').forEach(t=>t.classList.remove('sel'));document.getElementById('crop-'+c).classList.add('sel');toast('🌱 '+c.charAt(0).toUpperCase()+c.slice(1)+' selected');refreshPreview();}
-function setCover(t){document.getElementById('rcoverType').value=t;document.getElementById('ct-full').className='cov-tile'+(t==='full'?' sel':'');document.getElementById('ct-partial').className='cov-tile'+(t==='partial'?' sel':'');refreshPreview();}
-function refreshPreview(){
+
+async function api(method,path,body=null){
+  try{
+    const opts={method,headers:{'Content-Type':'application/json'}};
+    if(body)opts.body=JSON.stringify(body);
+    const r=await fetch(API_BASE+path,opts);
+    const d=await r.json();
+    if(d.offline)throw new Error('offline');
+    return d;
+  }catch(e){
+    if(e.message==='offline'||!navigator.onLine)return{offline:true,error:'No connection'};
+    throw e;
+  }
+}
+
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('wii-offline-db',1);r.onupgradeneeded=e=>{const db=e.target.result;['pending_policies','pending_payments','pending_iot'].forEach(s=>{if(!db.objectStoreNames.contains(s))db.createObjectStore(s,{keyPath:'id',autoIncrement:true});});};r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});}
+async function queueOffline(store,data){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).add(data).onsuccess=()=>res();tx.onerror=()=>rej();});}
+
+async function checkHealth(){
+  try{
+    const d=await api('GET','/health');
+    document.getElementById('netDot').classList.add('on');
+    document.getElementById('netTxt').textContent=d.mode+' mode';
+    document.getElementById('h-blocks').textContent=d.blocks||0;
+  }catch{document.getElementById('netTxt').textContent='Offline';}
+}
+
+function selectCrop(c){document.getElementById('rcrop').value=c;document.querySelectorAll('.crop-tile').forEach(t=>t.classList.remove('sel'));document.getElementById('crop-'+c).classList.add('sel');toast('🌱 '+c.charAt(0).toUpperCase()+c.slice(1)+' selected');}
+
+function setCover(t){
+  document.getElementById('rcoverType').value=t;
+  document.getElementById('ct-full').className='cov-tile'+(t==='full'?' sel':'');
+  document.getElementById('ct-partial').className='cov-tile'+(t==='partial'?' sel':'');
+  refreshPremiumPreview();
+}
+
+function setInsType(type){
+  const isGroup=type==='group';
+  document.getElementById('risGroup').value=isGroup?'true':'false';
+  document.getElementById('it-single').className='cov-tile'+(isGroup?'':' sel');
+  document.getElementById('it-group').className='cov-tile'+(isGroup?' sel':'');
+  document.getElementById('stationField').style.display=isGroup?'block':'none';
+  if(isGroup)toast('👥 Group selected — enter your shared Weather Station ID');
+  refreshPremiumPreview();
+}
+
+function refreshPremiumPreview(){
   const sz=parseFloat(document.getElementById('rsz')?.value)||0;
   const ic=parseFloat(document.getElementById('rinputCost')?.value)||0;
-  if(!sz||!ic){document.getElementById('coverPreview').style.display='none';return;}
+  if(!sz||!ic){const e=document.getElementById('coverPreview');if(e)e.style.display='none';return;}
   const yv=parseFloat(document.getElementById('ryieldValue')?.value)||0;
-  const ct=document.getElementById('rcoverType').value||'full';
+  const ct=document.getElementById('rcoverType')?.value||'full';
+  const ig=document.getElementById('risGroup')?.value==='true';
   const si=ct==='full'?(ic+yv)*sz:ic*sz;
-  const pr=Math.round(si*(ct==='full'?0.08:0.06)*100)/100;
-  document.getElementById('coverPreview').style.display='block';
-  document.getElementById('prevLabel').textContent=ct==='full'?'🛡️ Full Cover':'🌿 Partial Cover';
-  document.getElementById('prevAmt').textContent='$'+pr+'/yr';
-  document.getElementById('prevNote').textContent='Sum insured: $'+Math.round(si)+' | Rate: '+(ct==='full'?'8%':'6%');
+  const pr=Math.round(si*(ct==='full'?0.08:0.06)*(ig?0.9:1.0)*100)/100;
+  const e=document.getElementById('coverPreview');
+  if(e){
+    e.style.display='block';
+    document.getElementById('previewLabel').textContent=(ct==='full'?'🛡️ Full':'🌿 Partial')+(ig?' · 👥 Group(−10%)':' · 👤 Individual');
+    document.getElementById('previewAmt').textContent='$'+pr+'/yr';
+    document.getElementById('previewNote').textContent='Sum insured: $'+Math.round(si)+' | Rate: '+(ct==='full'?'8%':'6%');
+  }
 }
-function localCalc(sz,reg,soil,crop){
+
+function localCalcPremium(sz,reg,soil,crop){
   const cr={mashonaland:1.0,manicaland:1.1,matabeleland:1.2,midlands:1.05,masvingo:1.15};
   const sr={loam:1.0,sandy:1.25,clay:0.9};
   const crops={maize:1.0,tobacco:1.35,cotton:1.25,sorghum:0.85};
   return Math.round((50+sz*12*(cr[reg]||1.1)*(sr[soil]||1.0))*(crops[crop]||1.0)*100)/100;
 }
-function calcPremium(){
+
+async function calcPremium(){
   const sz=document.getElementById('rsz').value,reg=document.getElementById('rreg').value,sl=document.getElementById('rsoil').value,crop=document.getElementById('rcrop').value||'maize';
-  if(!sz||!reg||!sl){toast('Fill farm size, region and soil first',true);return;}
-  const p=localCalc(parseFloat(sz),reg,sl,crop),mn=Math.round(p/12*100)/100;
-  const lbl={maize:'Maize ×1.00',tobacco:'Tobacco ×1.35',cotton:'Cotton ×1.25',sorghum:'Sorghum ×0.85'};
-  document.getElementById('premAmt').textContent='$'+p;
-  document.getElementById('premMo').textContent='per year  |  $'+mn+'/month';
-  document.getElementById('premTable').innerHTML=`<div class="prem-row"><span>Base fee</span><span>$50.00</span></div><div class="prem-row"><span>Farm size adj.</span><span>included</span></div><div class="prem-row"><span>Region risk</span><span>included</span></div><div class="prem-row"><span>Soil type adj.</span><span>included</span></div><div class="prem-row"><span>Crop: ${lbl[crop]}</span><span></span></div><div class="prem-row"><span>Annual premium</span><span>$${p}</span></div>`;
+  if(!sz||!reg||!sl){toast('Fill farm size, region and soil type first',true);return;}
+  const localPrem=localCalcPremium(parseFloat(sz),reg,sl,crop);
+  try{
+    const d=await api('POST','/premium/calculate',{farmSize:sz,crop,region:reg,soilType:sl});
+    if(d.offline){showPremium(localPrem,localPrem/12,crop);return;}
+    showPremium(d.premium,d.monthly,crop);
+  }catch{showPremium(localPrem,localPrem/12,crop);}
+}
+
+function showPremium(annual,monthly,crop){
+  const cl={maize:'Maize ×1.00',tobacco:'Tobacco ×1.35',cotton:'Cotton ×1.25',sorghum:'Sorghum ×0.85'};
+  document.getElementById('premAmt').textContent='$'+annual;
+  document.getElementById('premMo').textContent='per year  |  $'+Math.round(monthly*100)/100+'/month';
+  document.getElementById('premTable').innerHTML=`<div class="prem-row"><span>Base fee</span><span>$50.00</span></div><div class="prem-row"><span>Farm size adjustment</span><span>included</span></div><div class="prem-row"><span>Region risk factor</span><span>included</span></div><div class="prem-row"><span>Soil type adjustment</span><span>included</span></div><div class="prem-row"><span>Crop multiplier</span><span>${cl[crop]||'Maize ×1.00'}</span></div><div class="prem-row"><span>Annual premium (ML-calculated)</span><span>$${annual}</span></div>`;
   document.getElementById('premBox').style.display='block';
-  toast('✅ Premium: $'+p);
+  toast('✅ Premium calculated: $'+annual);
 }
-function submitPolicy(){
-  const f={'Full Name':document.getElementById('rn').value.trim(),'National ID':document.getElementById('rid').value.trim(),'Phone':document.getElementById('rph').value.trim(),'Farm Size':document.getElementById('rsz').value.trim(),'Region':document.getElementById('rreg').value,'Soil Type':document.getElementById('rsoil').value,'Season':document.getElementById('rssn').value.trim()};
-  const miss=Object.entries(f).filter(([,v])=>!v).map(([k])=>k);
-  if(miss.length){toast('Missing: '+miss.join(', '),true);return;}
+
+async function submitPolicy(){
+  const fields={'Full Name':document.getElementById('rn').value.trim(),'National ID':document.getElementById('rid').value.trim(),'Phone':document.getElementById('rph').value.trim(),'Farm Size':document.getElementById('rsz').value.trim(),'Region':document.getElementById('rreg').value,'Soil Type':document.getElementById('rsoil').value,'Season':document.getElementById('rssn').value.trim()};
+  const missing=Object.entries(fields).filter(([,v])=>!v).map(([k])=>k);
+  if(missing.length){toast('Missing: '+missing.join(', '),true);return;}
   if(!document.getElementById('rcrop').value){toast('Select a crop type',true);return;}
-  const premium=parseFloat((document.getElementById('premAmt').textContent||'').replace('$',''))||localCalc(parseFloat(f['Farm Size']),f.Region,f['Soil Type'],document.getElementById('rcrop').value);
-  const ct=document.getElementById('rcoverType').value||'full';
-  const policyID='WII-'+(ct==='full'?'F':'P')+'-'+Date.now().toString(36).toUpperCase().slice(-6);
-  const payload={policyID,farmerName:f['Full Name'],idNumber:f['National ID'],phone:f['Phone'],email:document.getElementById('rem').value.trim(),farmSize:parseFloat(f['Farm Size']),soilType:f['Soil Type'],premium,region:f.Region,crop:document.getElementById('rcrop').value,season:f.Season,coverType:ct,paymentMethod:document.getElementById('rpm').value,inputCost:parseFloat(document.getElementById('rinputCost')?.value)||0,yieldValue:parseFloat(document.getElementById('ryieldValue')?.value)||0,gps:document.getElementById('rgps').value.trim(),status:'Active',registered_at:new Date().toISOString()};
+  const premium=parseFloat((document.getElementById('premAmt').textContent||'').replace('$',''))||localCalcPremium(parseFloat(fields['Farm Size']),fields.Region,fields['Soil Type'],document.getElementById('rcrop').value||'maize');
+  const coverType=document.getElementById('rcoverType').value||'full';
+  const isGroup=document.getElementById('risGroup').value==='true';
+  const stationID=document.getElementById('rStationID')?.value.trim()||'';
+  const coverCode=coverType==='full'?'F':'P';
+  const groupCode=isGroup?'G':'S';
+  const policyID='WII-'+groupCode+coverCode+'-'+Date.now().toString(36).toUpperCase().slice(-6);
+  const farmID=policyID.slice(0,8);
+  const gps=document.getElementById('rgps').value.trim();
+  let gpsLat=0,gpsLong=0;
+  if(gps.includes(','))try{[gpsLat,gpsLong]=gps.split(',').map(Number);}catch{}
+  const payload={policyID,farmID,farmerName:fields['Full Name'],idNumber:fields['National ID'],phone:fields['Phone'],email:document.getElementById('rem').value.trim(),farmSize:parseFloat(fields['Farm Size']),soilType:fields['Soil Type'],premium,region:fields.Region,crop:document.getElementById('rcrop').value||'maize',season:fields.Season,activeStage:'sowing',paymentMethod:document.getElementById('rpm').value,coverType,isGroup,weatherStationID:stationID,inputCost:parseFloat(document.getElementById('rinputCost')?.value)||0,yieldValue:parseFloat(document.getElementById('ryieldValue')?.value)||0,gpsLat,gpsLong};
   const btn=document.getElementById('submitBtn');
-  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Submitting...';
-  setTimeout(()=>{
-    const local=JSON.parse(localStorage.getItem(LKEY)||'[]');
-    local.push(payload);localStorage.setItem(LKEY,JSON.stringify(local));
-    document.getElementById('h-pol').textContent=local.length;
-    toast('✅ Policy committed! ID: '+policyID);
-    clearForm();btn.disabled=false;btn.innerHTML='⛓️ Submit to Blockchain';
-    setTimeout(()=>{go('s-pol');nb('nb-pol');loadPolicies();},1200);
-  },1500);
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Submitting to Fabric...';
+  try{
+    const d=await api('POST','/policy/register',payload);
+    if(d.offline){await queueOffline('pending_policies',{...payload,queued_at:new Date().toISOString()});toast('📦 Saved offline — will sync when connected');}
+    else toast('✅ Policy committed! TX: '+(d.txID||'').slice(0,14)+'...');
+    const local=JSON.parse(localStorage.getItem('wii_policies')||'[]');
+    local.push({...payload,status:'Active',registered_at:new Date().toISOString()});
+    localStorage.setItem('wii_policies',JSON.stringify(local));
+    document.getElementById('h-policies').textContent=local.length;
+    clearForm();
+    setTimeout(()=>{go('s-policies');nb('nb-policies');loadPolicies();},1200);
+  }catch(e){toast('Submission failed: '+e.message,true);}
+  btn.disabled=false;btn.innerHTML='⛓️ Submit to Blockchain';
 }
+
 function clearForm(){
-  ['rn','rid','rph','rem','rsz','rgps','rssn','rinputCost','ryieldValue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rn','rid','rph','rem','rsz','rssn','rinputCost','ryieldValue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['rreg','rsoil','rpm'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
   document.getElementById('premBox').style.display='none';
   document.getElementById('coverPreview').style.display='none';
   document.getElementById('rcrop').value='';
-  document.querySelectorAll('.ct').forEach(t=>t.classList.remove('sel'));
-  setCover('full');
+  document.querySelectorAll('.crop-tile').forEach(t=>t.classList.remove('sel'));
+  setCover('full');setInsType('single');
+  clearBoundary();
 }
+
 let selMethod=null;
-function selPM(m){
-  selMethod=m;
-  document.querySelectorAll('.pm-tile').forEach(t=>t.classList.remove('sel'));
-  document.getElementById('pm-'+m).classList.add('sel');
-  const x={ecocash:`<div class="fgrp"><label class="flbl">EcoCash Number</label><input class="fin" id="pmRef" placeholder="+263 77 ..." type="tel"/></div>`,onemoney:`<div class="fgrp"><label class="flbl">NetOne Number</label><input class="fin" id="pmRef" placeholder="+263 71 ..." type="tel"/></div>`,card:`<div class="fgrp"><label class="flbl">Card Number</label><input class="fin" id="pmRef" placeholder="1234 5678 9012 3456" inputmode="numeric"/></div><div class="frow"><div class="fgrp"><label class="flbl">Expiry</label><input class="fin" id="pmExp" placeholder="MM/YY"/></div><div class="fgrp"><label class="flbl">CVV</label><input class="fin" id="pmCvv" placeholder="•••" type="password" inputmode="numeric"/></div></div>`,bank:`<div class="fgrp"><label class="flbl">Account Number</label><input class="fin" id="pmRef" placeholder="Bank account number"/></div>`};
-  document.getElementById('pm-extra').innerHTML=x[m]||'';
-}
-function processPayment(){
+function selPM(m){selMethod=m;document.querySelectorAll('.pm-tile').forEach(t=>t.classList.remove('sel'));document.getElementById('pm-'+m).classList.add('sel');const extras={ecocash:`<div class="fgroup"><label class="flabel">EcoCash Number</label><input class="finput" id="pmRef" placeholder="+263 77 ..." type="tel"/></div>`,onemoney:`<div class="fgroup"><label class="flabel">NetOne Number</label><input class="finput" id="pmRef" placeholder="+263 71 ..." type="tel"/></div>`,card:`<div class="fgroup"><label class="flabel">Card Number</label><input class="finput" id="pmRef" placeholder="1234 5678 9012 3456"/></div><div class="frow"><div class="fgroup"><label class="flabel">Expiry</label><input class="finput" id="pmExp" placeholder="MM/YY"/></div><div class="fgroup"><label class="flabel">CVV</label><input class="finput" id="pmCvv" placeholder="•••" type="password"/></div></div>`,bank:`<div class="fgroup"><label class="flabel">Account Number</label><input class="finput" id="pmRef" placeholder="Bank account number"/></div>`};document.getElementById('pm-extra').innerHTML=extras[m]||'';}
+
+async function processPayment(){
   const pid=document.getElementById('ppid').value.trim(),amt=document.getElementById('pamt').value;
   if(!pid||!amt){toast('Enter Policy ID and Amount',true);return;}
   if(!selMethod){toast('Choose a payment method',true);return;}
-  const ref=document.getElementById('pmRef')?.value||Math.random().toString(36).slice(2,10).toUpperCase();
-  const pols=JSON.parse(localStorage.getItem(LKEY)||'[]');
-  pols.forEach(p=>{if(p.policyID===pid)p.status='Paid';});
-  localStorage.setItem(LKEY,JSON.stringify(pols));
-  toast('✅ Payment confirmed! Ref: '+ref);
-  document.getElementById('ppid').value='';document.getElementById('pamt').value='';
+  const ref=document.getElementById('pmRef')?.value||Math.random().toString(36).slice(2,12).toUpperCase();
+  const payload={policyID:pid,method:selMethod,amount:parseFloat(amt),reference:ref};
+  try{
+    const d=await api('POST','/payment/pay',payload);
+    if(d.offline){await queueOffline('pending_payments',{...payload,queued_at:new Date().toISOString()});toast('📦 Payment queued — will sync when online');}
+    else toast('✅ Payment confirmed! Ref: '+d.reference);
+    const pols=JSON.parse(localStorage.getItem('wii_policies')||'[]');
+    pols.forEach(p=>{if(p.policyID===pid)p.status='Paid';});
+    localStorage.setItem('wii_policies',JSON.stringify(pols));
+    document.getElementById('ppid').value='';document.getElementById('pamt').value='';
+  }catch{toast('Payment failed',true);}
 }
-function loadIoT(){
+
+async function loadIoT(){
   const farm=(document.getElementById('iotFarm').value.trim()||'FARM001').toUpperCase();
-  const seed=farm.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-  const rnd=(n,mn,mx)=>Math.round(mn+(Math.sin(n*seed*0.37)*0.5+0.5)*(mx-mn));
-  const readings=Array.from({length:7},(_,i)=>({d:String(i+22),mm:rnd(i,0,8)}));
-  const total=readings.reduce((a,r)=>a+r.mm,0);
-  const thr=30,pct=Math.min(100,Math.round(total/thr*100));
-  const col=pct<40?'var(--red)':pct<70?'var(--gold)':'var(--g)';
-  document.getElementById('iotTotal').textContent=total+' mm';
-  document.getElementById('iotTotal').style.color=col;
-  document.getElementById('iotMeta').textContent='7-Day Total  |  Stage: MATURATION  |  Threshold: '+thr+'mm';
-  const bar=document.getElementById('iotBar');bar.style.width=pct+'%';bar.style.background=col;
-  const st=document.getElementById('iotStatus');
-  if(pct<40){st.textContent='🚨 BREACH — Payout triggered!';st.style.color='var(--red)';}
-  else if(pct<70){st.textContent='⚠️ LOW — '+pct+'% of threshold';st.style.color='var(--gold)';}
-  else{st.textContent='✅ ADEQUATE — '+pct+'% of threshold';st.style.color='var(--g)';}
-  document.getElementById('h-rain').textContent=total+'mm';
-  const maxMM=Math.max(...readings.map(r=>r.mm),10);
-  document.getElementById('rRow').innerHTML=readings.map(r=>{
-    const h=Math.max(4,Math.round(r.mm/maxMM*46));
-    const c=r.mm<2?'var(--red)':r.mm<4?'var(--gold)':'var(--g)';
-    return `<div class="rcol"><div class="rbar-w"><div class="rbar" style="height:${h}px;background:${c}"></div></div><div class="rday">${r.d}</div><div class="rmm" style="color:${c}">${r.mm}</div></div>`;
-  }).join('');
-  toast('📡 IoT data loaded for '+farm);
+  try{
+    const d=await api('GET','/iot/readings/'+farm);
+    if(d.offline){toast('Showing cached IoT data');return;}
+    const total=d.seven_day_total||0,thr=d.threshold_mm||30;
+    const pct=Math.min(100,Math.round(total/thr*100));
+    const col=pct<40?'var(--red)':pct<70?'var(--gold)':'var(--green)';
+    document.getElementById('iotTotal').textContent=total+' mm';
+    document.getElementById('iotTotal').style.color=col;
+    document.getElementById('iotMeta').textContent='7-Day Total  |  Stage: '+(d.stage||'maturation').toUpperCase()+'  |  Threshold: '+thr+'mm';
+    const bar=document.getElementById('iotBar');bar.style.width=pct+'%';bar.style.background=col;
+    const st=document.getElementById('iotStatus');
+    if(d.breached){st.textContent='🚨 BREACH — Payout triggered!';st.style.color='var(--red)';}
+    else if(pct<70){st.textContent='⚠️ LOW — '+pct+'% of threshold';st.style.color='var(--gold)';}
+    else{st.textContent='✅ ADEQUATE — '+pct+'% of threshold';st.style.color='var(--green)';}
+    document.getElementById('h-rain').textContent=total+'mm';
+    renderBars(d.readings||[]);
+  }catch{toast('No IoT data for '+farm,true);}
 }
-function loadPolicies(){
-  const pols=JSON.parse(localStorage.getItem(LKEY)||'[]');
-  document.getElementById('h-pol').textContent=pols.length;
-  if(!pols.length){
-    document.getElementById('polList').innerHTML=`<div class="empty"><div class="empty-ic">📋</div><p style="font-size:12px;line-height:1.65">No policies yet.<br/>Register your first policy to get started.</p><br/><button class="btn btn-g btn-sm" onclick="go('s-reg');nb('nb-reg')">Register Now</button></div>`;return;
+
+function renderBars(readings){
+  const last7=readings.slice(-7),maxMM=Math.max(...last7.map(r=>r.rainfall_mm||0),10);
+  document.getElementById('readingsRow').innerHTML=last7.map((r,i)=>{
+    const mm=r.rainfall_mm||0,h=Math.max(4,Math.round(mm/maxMM*50));
+    const col=mm<2?'var(--red)':mm<4?'var(--gold)':'var(--green)';
+    const day=(r.timestamp||'').slice(8,10)||('D'+(i+1));
+    return `<div class="r-col"><div class="r-bar-wrap"><div class="r-bar" style="height:${h}px;background:${col}"></div></div><div class="r-day">${day}</div><div class="r-mm" style="color:${col}">${mm}</div></div>`;
+  }).join('');}
+
+async function loadPolicies(){
+  const list=document.getElementById('polList');
+  try{
+    let policies=[];
+    const d=await api('GET','/policy/all');
+    if(d.offline||Array.isArray(d)&&!d.length){policies=JSON.parse(localStorage.getItem('wii_policies')||'[]');}
+    else{policies=Array.isArray(d)?d:JSON.parse(localStorage.getItem('wii_policies')||'[]');const local=JSON.parse(localStorage.getItem('wii_policies')||'[]');const apiIDs=new Set(policies.map(p=>p.policyID));local.forEach(p=>{if(!apiIDs.has(p.policyID))policies.push(p);});}
+    document.getElementById('h-policies').textContent=policies.length;
+    if(!policies.length){list.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p>No policies yet.<br/>Register your first policy.</p><br/><button class="btn btn-green btn-sm" onclick="go('s-register')">Register Now</button></div>`;return;}
+    list.innerHTML=policies.slice().reverse().map(p=>{
+      const status=p.status||'Active',bcls=status==='Active'?'b-active':status==='Paid'?'b-paid':'b-claimed';
+      const offline=p.queued_at?'<span class="badge b-offline" style="margin-left:4px">📦 Queued</span>':'';
+      return `<div class="pol-card"><div class="pol-id">🔖 ${p.policyID}</div><div class="pol-name">${p.farmerName}</div><div class="pol-meta"><div class="pm-item">🌱 Crop: <span>${p.crop?p.crop.charAt(0).toUpperCase()+p.crop.slice(1):'Maize'}</span></div><div class="pm-item">📐 Size: <span>${p.farmSize} ac</span></div><div class="pm-item">🗺 Region: <span>${p.region}</span></div><div class="pm-item">🏔 Soil: <span>${p.soilType}</span></div><div class="pm-item">📅 Season: <span>${p.season}</span></div><div class="pm-item">💰 Premium: <span style="color:var(--gold)">$${p.premium}/yr</span></div></div><div class="pol-footer"><div><span class="badge ${bcls}">${status}</span>${offline}</div><button class="btn btn-gold btn-sm" onclick="prefillPay('${p.policyID}','${p.premium}')">Pay Now</button></div></div>`;
+    }).join('');
+  }catch{toast('Could not load policies',true);}
+}
+
+function prefillPay(pid,amt){document.getElementById('ppid').value=pid;document.getElementById('pamt').value=amt;go('s-pay');nb('nb-home');}
+
+const KB={'hello|hi|hey|start':"Hello! 👋 I'm the WII Assistant — available 24/7.\n\nI can help with:\n• Registering a policy\n• Premium calculation\n• WRSI thresholds\n• How IoT payouts work\n• Payment methods\n• Blockchain ledger\n• Offline mode\n\nWhat would you like to know? 🌾",'register|policy':"📋 To register a policy:\n1. Tap 'Register' at the bottom\n2. Fill in your personal details\n3. Draw your farm boundary on the satellite map\n4. Enter farm details\n5. Tap 'Calculate ML Premium'\n6. Tap 'Submit to Blockchain'\n\nYour policy is stored on Hyperledger Fabric! ⛓️",'premium|cost|calculate':"💰 Your premium is ML-calculated:\n\nBase: $50\n+ Farm size × $12/acre\n× Region risk factor\n× Soil type adjustment\n× Crop multiplier\n\nFull Cover: 8% of sum insured\nPartial Cover: 6% of sum insured\n\nTap 'Calculate ML Premium' for your rate.",'payout|automatic|trigger|claim':"💸 How Automatic Payouts Work:\n\n1. 📡 IoT rain gauge records mm/day\n2. 🔁 Node-RED accumulates 7-day total\n3. ⚡ If total < WRSI threshold → BREACH\n4. ⛓️ Smart contract commits payout\n5. 📧 Email to farmer + insurer\n6. 💳 Payment to EcoCash/mobile money\n\nFully automatic — no claims needed! ✅",'wrsi|threshold|rainfall|breach':"🌧️ WRSI Maize Thresholds (7 days):\n\nSowing: 20mm\nGermination: 15mm\nEstablishment: 25mm\nMaturation ★: 30mm  ← CRITICAL\nHarvest: 10mm\n\nIf 7-day rainfall drops below threshold, payout is triggered automatically.",'ecocash|payment|mobile money|card|bank':"💳 Payment Methods:\n\n📱 EcoCash — dial *151#\n📲 OneMoney — dial *111#\n💳 Debit/Credit Card — Visa/Mastercard\n🏦 Bank Transfer — ZIPIT/RTGS\n\nAll payments recorded on blockchain.",'iot|sensor|gauge|rain':"📡 IoT Rain Gauge:\n\nHardware: ESP32 + Tipping Bucket\n  (0.2mm/tip)\nSensors: DHT22 temp + soil moisture\nProtocol: MQTT → Node-RED\n\nRecords mm/day, sends to server.\nNode-RED keeps 7-day rolling total\nand checks WRSI threshold daily.",'blockchain|fabric|ledger':"⛓️ Hyperledger Fabric:\n\nChannel: wii-channel\nOrgs: Insurance, Farmer, Regulator\nChaincode: wii-contract (Go)\n\nAll transactions are:\n• Immutable — cannot be changed\n• Transparent — all parties verify\n• Automatic — payouts trigger\n  without human intervention",'map|boundary|satellite|draw':"🗺️ Drawing Farm Boundary:\n\n1. Go to Register Policy\n2. Tap 'Draw Boundary' button\n3. Tap each corner of your farm\n   on the satellite map\n4. Farm size auto-calculates\n5. GPS coordinates auto-filled\n\nTap 'My Location' to centre\nthe map on your current position.",'thank|thanks|great':"You're welcome! 😊\n\nYour IoT rain gauge monitors your\nfarm 24/7. Any rainfall deficit\ntriggers an automatic payout.\n\nHave a great farming season! 🌾"};
+function botReply(t){const l=t.toLowerCase();for(const[k,v]of Object.entries(KB))if(k.split('|').some(w=>l.includes(w)))return v;return "I'm not sure about that. 🤔\n\nTry asking about:\n• 'register policy'\n• 'drawing farm boundary'\n• 'premium calculation'\n• 'WRSI thresholds'\n• 'how payouts work'\n• 'payment methods'";}
+let _chatInited=false;
+function initChat(){if(_chatInited)return;_chatInited=true;addMsg("Hello! 👋 I'm the WII Assistant — available 24/7.\n\nAsk me about policies, premiums, IoT payouts, farm boundary mapping, or payments. 🌾",'bot');}
+function addMsg(text,who){const box=document.getElementById('chatMsgs'),d=document.createElement('div');d.className='cmsg '+who;d.textContent=text;box.appendChild(d);box.scrollTop=box.scrollHeight;}
+function sendChat(){const inp=document.getElementById('chatInp'),txt=inp.value.trim();if(!txt)return;inp.value='';addMsg(txt,'usr');setTimeout(()=>addMsg(botReply(txt),'bot'),280);}
+
+window.addEventListener('online',()=>{document.getElementById('offlineBanner').classList.remove('show');document.getElementById('netDot').classList.add('on');toast('🟢 Back online — syncing...');checkHealth();});
+window.addEventListener('offline',()=>{document.getElementById('offlineBanner').classList.add('show');document.getElementById('netDot').classList.remove('on');document.getElementById('netTxt').textContent='Offline';});
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(reg=>{console.log('[WII] SW registered');}).catch(err=>console.warn('[WII] SW failed:',err));}
+
+function handleHash(){const map={register:'s-register',pay:'s-pay',iot:'s-iot',policies:'s-policies',chat:'s-chat'};const h=window.location.hash.replace('#','');if(map[h])go(map[h]);}
+
+checkHealth();handleHash();setInterval(checkHealth,45000);
+const _local=JSON.parse(localStorage.getItem('wii_policies')||'[]');
+document.getElementById('h-policies').textContent=_local.length;
+
+// GOOGLE MAPS
+function onGmapsLoad(){window.gmapsReady=true;if(document.getElementById('s-register').classList.contains('active'))initMap();}
+let _map=null,_polygon=null,_points=[],_markers=[],_mapInited=false,_drawMode=true;
+
+function initMap(){
+  if(_mapInited)return;
+  if(!window.gmapsReady||!window.google||!window.google.maps){setTimeout(initMap,500);return;}
+  _mapInited=true;
+  const mapDiv=document.getElementById('farmMap');
+  mapDiv.innerHTML='';mapDiv.classList.add('loaded');
+  _map=new google.maps.Map(mapDiv,{center:{lat:-19.0154,lng:29.1549},zoom:7,mapTypeId:'satellite',tilt:0,mapTypeControl:false,streetViewControl:false,fullscreenControl:false,zoomControlOptions:{position:google.maps.ControlPosition.RIGHT_CENTER}});
+  _map.addListener('click',function(e){if(!_drawMode)return;addPoint(e.latLng);});
+}
+
+function setDrawMode(on){_drawMode=on;document.getElementById('btn-draw').classList.toggle('on',on);document.getElementById('mapInfo').innerHTML=on?'✏️ <strong>Drawing ON</strong> — tap each corner of your farm on the satellite map.':'Tap <strong>Draw Boundary</strong> to start.';}
+
+function addPoint(latLng){
+  _points.push(latLng);
+  const m=new google.maps.Marker({position:latLng,map:_map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:'#12c44a',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
+  _markers.push(m);updatePolygon();
+}
+
+function updatePolygon(){
+  if(_polygon){_polygon.setMap(null);_polygon=null;}
+  if(_points.length<2){document.getElementById('mapInfo').innerHTML='✏️ <strong>'+_points.length+' point'+(_points.length===1?'':'s')+' marked.</strong> Keep tapping corners.';return;}
+  _polygon=new google.maps.Polygon({paths:_points,strokeColor:'#12c44a',strokeOpacity:0.9,strokeWeight:2,fillColor:'#12c44a',fillOpacity:0.18,map:_map});
+  if(_points.length>=3){
+    const areaM2=google.maps.geometry.spherical.computeArea(_points);
+    const acres=(areaM2/4046.86).toFixed(2),hectares=(areaM2/10000).toFixed(2);
+    let lat=0,lng=0;_points.forEach(p=>{lat+=p.lat();lng+=p.lng();});lat/=_points.length;lng/=_points.length;
+    document.getElementById('rsz').value=acres;
+    document.getElementById('rgps').value=lat.toFixed(6)+', '+lng.toFixed(6);
+    document.getElementById('mapInfo').innerHTML='📐 <strong>Farm: '+acres+' acres ('+hectares+' ha)</strong> — '+_points.length+' corners<br/>📍 '+lat.toFixed(5)+', '+lng.toFixed(5);
+    refreshPremiumPreview();
   }
-  document.getElementById('polList').innerHTML=pols.slice().reverse().map(p=>{
-    const st=p.status||'Active',bc=st==='Active'?'b-active':st==='Paid'?'b-paid':'b-claimed';
-    return `<div class="pol-card"><div class="pol-id">🔖 ${p.policyID}</div><div class="pol-nm">${p.farmerName}</div><div class="pol-meta"><div class="pm-item">🌱 Crop: <span>${(p.crop||'maize').charAt(0).toUpperCase()+(p.crop||'maize').slice(1)}</span></div><div class="pm-item">📐 Size: <span>${p.farmSize} ac</span></div><div class="pm-item">🗺 Region: <span>${p.region}</span></div><div class="pm-item">🏔 Soil: <span>${p.soilType}</span></div><div class="pm-item">📅 Season: <span>${p.season}</span></div><div class="pm-item">💰 Premium: <span style="color:var(--gold)">$${p.premium}/yr</span></div></div><div class="pol-ft"><span class="badge ${bc}">${st}</span><button class="btn btn-gold btn-sm" onclick="prefillPay('${p.policyID}','${p.premium}')">Pay Now</button></div></div>`;
-  }).join('');
 }
-function prefillPay(pid,amt){document.getElementById('ppid').value=pid;document.getElementById('pamt').value=amt;go('s-pay');nb('nb-pay');}
-const KB={'hello|hi|hey':"Hello! 👋 I'm the WII Assistant.\n\nAsk me about:\n• Registering a policy\n• Premium calculation\n• WRSI thresholds\n• How payouts work\n• Payment methods\n• Blockchain records",'register|policy':"📋 To register a policy:\n1. Tap 'Register' in menu\n2. Fill personal details\n3. Select your crop type\n4. Enter farm details\n5. Calculate ML Premium\n6. Submit to Blockchain\n\nYour policy is stored on Hyperledger Fabric! ⛓️",'premium|cost|calculate':"💰 Premium is ML-calculated:\n\nBase: $50\n+ Farm size × $12/acre\n× Region risk (1.0–1.2×)\n× Soil type (0.9–1.25×)\n× Crop multiplier\n\nFull Cover: 8% of sum insured\nPartial Cover: 6% of sum insured",'payout|claim|automatic':"💸 Automatic Payouts:\n\n1. 📡 IoT gauge records mm/day\n2. 🔁 Node-RED rolls 7-day total\n3. ⚡ Below WRSI threshold → BREACH\n4. ⛓️ Smart contract commits\n5. 📧 Email alert sent\n6. 💳 EcoCash payment triggered\n\nFully automatic — no claims!",'wrsi|threshold|breach|rainfall':"🌧️ WRSI Maize Thresholds:\n\nSowing: 20mm\nGermination: 15mm\nEstablishment: 25mm\nMaturation ★: 30mm ← CRITICAL\nHarvest: 10mm\n\nDropping below threshold\ntriggers automatic payout.",'ecocash|payment|mobile':"💳 Payment Methods:\n\n📱 EcoCash — *151#\n📲 OneMoney — *111#\n💳 Card — Visa/Mastercard\n🏦 Bank — ZIPIT/RTGS\n\nAll recorded on blockchain.",'iot|sensor|gauge':"📡 IoT Hardware:\n\nESP32 + Tipping Bucket Gauge\n(0.2mm per tip)\nDHT22 temp + soil moisture\nMQTT → Node-RED\n\n7-day rolling total checked\ndaily against WRSI.",'blockchain|fabric|ledger':"⛓️ Hyperledger Fabric:\n\nChannel: wii-channel\nOrgs: Insurance, Farmer,\n       Regulator\nChaincode: wii-contract (Go)\n\nImmutable · Transparent\nAutomatic · Auditable",'thank|thanks|great':"You're welcome! 😊\n\nYour IoT gauge monitors your\nfarm 24/7. Rainfall deficit\ntriggers automatic payout.\n\nHave a great farming season! 🌾"};
-function botReply(t){const l=t.toLowerCase();for(const[k,v]of Object.entries(KB))if(k.split('|').some(w=>l.includes(w)))return v;return "I'm not sure. 🤔\n\nTry asking about:\n• 'register policy'\n• 'premium calculation'\n• 'WRSI thresholds'\n• 'how payouts work'\n• 'payment methods'";}
-let _ci=false;
-function initChat(){if(_ci)return;_ci=true;addMsg("Hello! 👋 I'm the WII Assistant — 24/7.\n\nAsk me about policies, premiums, IoT payouts, or payments. 🌾",'bot');}
-function addMsg(t,w){const b=document.getElementById('chatMsgs'),d=document.createElement('div');d.className='cmsg '+w;d.textContent=t;b.appendChild(d);b.scrollTop=b.scrollHeight;}
-function sendChat(){const i=document.getElementById('chatInp'),t=i.value.trim();if(!t)return;i.value='';addMsg(t,'usr');setTimeout(()=>addMsg(botReply(t),'bot'),280);}
-// init
-const _l=JSON.parse(localStorage.getItem(LKEY)||'[]');
-document.getElementById('h-pol').textContent=_l.length;
+
+function locateMe(){
+  if(!_mapInited){toast('Map still loading…',true);return;}
+  toast('📍 Getting location…');
+  navigator.geolocation.getCurrentPosition(
+    pos=>{const ll={lat:pos.coords.latitude,lng:pos.coords.longitude};_map.setCenter(ll);_map.setZoom(16);new google.maps.Marker({position:ll,map:_map,title:'You',icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#f0c040',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});toast('✅ Centred on your location');},
+    err=>toast('Location error: '+err.message,true),
+    {enableHighAccuracy:true,timeout:10000}
+  );
+}
+
+function undoPoint(){
+  if(!_points.length)return;
+  _points.pop();const m=_markers.pop();if(m)m.setMap(null);
+  if(!_points.length){document.getElementById('rsz').value='';document.getElementById('rgps').value='';document.getElementById('mapInfo').innerHTML='Tap <strong>Draw Boundary</strong> then tap each corner of your farm.';}
+  updatePolygon();
+}
+
+function clearBoundary(){
+  _points=[];_markers.forEach(m=>{try{m.setMap(null);}catch(e){}});_markers=[];
+  if(_polygon){try{_polygon.setMap(null);}catch(e){}_polygon=null;}
+  document.getElementById('rsz').value='';document.getElementById('rgps').value='';
+  const info=document.getElementById('mapInfo');
+  if(info)info.innerHTML='Tap <strong>Draw Boundary</strong> then tap each corner of your farm on the satellite map.';
+}
 </script>
 </body>
 </html>
