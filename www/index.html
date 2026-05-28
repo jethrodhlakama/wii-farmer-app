@@ -398,14 +398,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear
 
 <script>
 'use strict';
-// API_BASE: points to your Flask server when online, gracefully fails when offline
-const API_BASE=(()=>{
-  const h=window.location.hostname;
-  if(h==='localhost'||h==='127.0.0.1') return 'http://localhost:5000';
-  // In APK (Capacitor), hostname is 'localhost' — use your deployed server URL here:
-  // return 'https://YOUR-SERVER-URL.com';
-  return 'http://localhost:5000';
-})();
+// ⚠️ UPDATE THIS URL when your ngrok URL changes
+const API_BASE = 'https://untippable-typologically-jarrett.ngrok-free.dev';
 
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);if(id==='s-register')setTimeout(initMap,250);}
 function nb(id){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');}
