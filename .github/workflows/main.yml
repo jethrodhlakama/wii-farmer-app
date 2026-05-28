@@ -23,6 +23,13 @@ jobs:
         run: npx cap add android
       - name: Sync web assets
         run: npx cap sync android
+      - name: Enable cleartext & mixed content for Maps API
+        run: |
+          sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml || true
+          grep -q 'usesCleartextTraffic' android/app/src/main/AndroidManifest.xml || sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+      - name: Add INTERNET permission
+        run: |
+          grep -q 'INTERNET' android/app/src/main/AndroidManifest.xml || sed -i 's/<application/\<uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"\/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"\/>\n    <application/' android/app/src/main/AndroidManifest.xml
       - name: Build APK
         run: |
           chmod +x android/gradlew
