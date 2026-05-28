@@ -2,18 +2,11 @@
 <html lang="en">
 <head>
 <script>
-(function(){
-  const token = sessionStorage.getItem('wii_token');
-  const role  = sessionStorage.getItem('wii_role');
-  if (!token || role !== 'farmer') {
-    window.location.href = '/login?role=farmer';
-  }
-})();
+// APK mode — no server login required, app runs standalone
 function logout() {
-  sessionStorage.removeItem('wii_token');
-  sessionStorage.removeItem('wii_role');
-  sessionStorage.removeItem('wii_username');
-  window.location.href = '/login';
+  localStorage.clear();
+  sessionStorage.clear();
+  toast('Logged out');
 }
 </script>
 <meta charset="UTF-8"/>
@@ -405,10 +398,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear
 
 <script>
 'use strict';
+// API_BASE: points to your Flask server when online, gracefully fails when offline
 const API_BASE=(()=>{
   const h=window.location.hostname;
   if(h==='localhost'||h==='127.0.0.1') return 'http://localhost:5000';
-  return window.location.origin;
+  // In APK (Capacitor), hostname is 'localhost' — use your deployed server URL here:
+  // return 'https://YOUR-SERVER-URL.com';
+  return 'http://localhost:5000';
 })();
 
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);if(id==='s-register')setTimeout(initMap,250);}
@@ -435,11 +431,17 @@ async function queueOffline(store,data){const db=await openDB();return new Promi
 
 async function checkHealth(){
   try{
-    const d=await api('GET','/health');
+    const d=await Promise.race([
+      api('GET','/health'),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3000))
+    ]);
     document.getElementById('netDot').classList.add('on');
     document.getElementById('netTxt').textContent=d.mode+' mode';
     document.getElementById('h-blocks').textContent=d.blocks||0;
-  }catch{document.getElementById('netTxt').textContent='Offline';}
+  }catch{
+    document.getElementById('netTxt').textContent='Offline';
+    document.getElementById('netDot').classList.remove('on');
+  }
 }
 
 function selectCrop(c){document.getElementById('rcrop').value=c;document.querySelectorAll('.crop-tile').forEach(t=>t.classList.remove('sel'));document.getElementById('crop-'+c).classList.add('sel');toast('🌱 '+c.charAt(0).toUpperCase()+c.slice(1)+' selected');}
@@ -629,7 +631,8 @@ function sendChat(){const inp=document.getElementById('chatInp'),txt=inp.value.t
 window.addEventListener('online',()=>{document.getElementById('offlineBanner').classList.remove('show');document.getElementById('netDot').classList.add('on');toast('🟢 Back online — syncing...');checkHealth();});
 window.addEventListener('offline',()=>{document.getElementById('offlineBanner').classList.add('show');document.getElementById('netDot').classList.remove('on');document.getElementById('netTxt').textContent='Offline';});
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(reg=>{console.log('[WII] SW registered');}).catch(err=>console.warn('[WII] SW failed:',err));}
+// Service worker only for PWA web mode, not needed in APK
+if('serviceWorker' in navigator && window.location.protocol === 'https:'){navigator.serviceWorker.register('/sw.js').then(reg=>{console.log('[WII] SW registered');}).catch(err=>console.warn('[WII] SW failed:',err));}
 
 function handleHash(){const map={register:'s-register',pay:'s-pay',iot:'s-iot',policies:'s-policies',chat:'s-chat'};const h=window.location.hash.replace('#','');if(map[h])go(map[h]);}
 
