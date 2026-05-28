@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#12c44a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>WII — Weather Index Insurance</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+:root{
+  --g:#12c44a;--gd:#0a8f35;--gdim:#0d3320;--gold:#f0c040;
+  --blue:#40a0f8;--red:#ff4455;--teal:#18c4a0;
+  --bg:#060f08;--bg2:#0b1a0f;--bg3:#0f2416;
+  --bdr:rgba(18,196,74,0.15);--bdr2:rgba(18,196,74,0.28);
+  --txt:#e8f5ec;--muted:#5a8a68;
+  --r:14px;--rsm:10px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'DM Sans',sans-serif;color:var(--txt);-webkit-font-smoothing:antialiased;}
+#app{height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden;}
+#app::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(18,196,74,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(18,196,74,0.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
+.screen{display:none;flex-direction:column;height:100%;position:relative;z-index:1;}
+.screen.active{display:flex;}
+.sb{flex:1;overflow-y:auto;padding:14px 14px calc(70px + var(--safe-bot));-webkit-overflow-scrolling:touch;}
+.sb::-webkit-scrollbar{display:none;}
+.topbar{background:rgba(6,15,8,0.97);border-bottom:1px solid var(--bdr);padding:calc(12px + var(--safe-top)) 14px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tb-back{background:none;border:1px solid var(--bdr);border-radius:8px;color:var(--g);padding:6px 11px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.tb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;flex:1;}
+.tb-act{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;}
+.gnav{background:rgba(6,15,8,0.97);border-bottom:1px solid var(--bdr);padding:calc(12px + var(--safe-top)) 14px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.brand{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--g);}
+.brand span{color:var(--gold);}
+.nbadge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.ndot{width:7px;height:7px;border-radius:50%;background:var(--g);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.navbar{position:absolute;bottom:0;left:0;right:0;background:rgba(6,15,8,0.98);border-top:1px solid var(--bdr);display:flex;padding:6px 0 calc(8px + var(--safe-bot));z-index:20;}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:5px 2px;color:var(--muted);font-size:9px;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .2s;}
+.nb.on{color:var(--g);}
+.nb .ic{font-size:22px;line-height:1;}
+.nb .dot{width:4px;height:4px;border-radius:50%;background:var(--g);opacity:0;transition:opacity .2s;}
+.nb.on .dot{opacity:1;}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:12px;animation:fu .3s ease both;}
+@keyframes fu{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--g);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.clbl::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.hero{background:linear-gradient(140deg,var(--bg2) 0%,#0d2518 50%,var(--gdim) 100%);border:1px solid var(--bdr);border-radius:18px;padding:20px 16px;margin-bottom:14px;position:relative;overflow:hidden;animation:fu .3s ease both;}
+.hero::after{content:'🌾';position:absolute;right:-6px;bottom:-10px;font-size:72px;opacity:.06;pointer-events:none;}
+.htag{display:inline-block;background:rgba(18,196,74,0.1);border:1px solid rgba(18,196,74,0.22);border-radius:20px;font-size:9px;color:var(--g);padding:2px 8px;margin-bottom:8px;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;line-height:1.15;margin-bottom:6px;}
+.hero h1 em{color:var(--g);font-style:normal;}
+.hero p{font-size:11px;color:var(--muted);line-height:1.6;}
+.hstats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px;}
+.hs{background:rgba(0,0,0,0.28);border-radius:10px;padding:9px 4px;text-align:center;}
+.hs-v{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--g);}
+.hs-l{font-size:8px;color:var(--muted);margin-top:1px;}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+.atile{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 10px 13px;cursor:pointer;transition:all .15s;text-align:center;animation:fu .3s ease both;-webkit-user-select:none;user-select:none;}
+.atile:active{transform:scale(.96);opacity:.85;}
+.atile-ic{font-size:28px;margin-bottom:6px;}
+.atile-lbl{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;}
+.atile-sub{font-size:9px;color:var(--muted);margin-top:2px;}
+.flbl{display:block;font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.fin,.fsel{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rsm);padding:12px 12px;color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+.fin:focus,.fsel:focus{border-color:var(--g);}
+.fin::placeholder{color:var(--muted);}
+.fgrp{margin-bottom:12px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.fsec{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--g);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
+.fsec::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.btn{display:block;width:100%;padding:14px;border-radius:11px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;text-align:center;-webkit-user-select:none;user-select:none;}
+.btn+.btn{margin-top:9px;}
+.btn-g{background:var(--g);color:#000;}
+.btn-g:active{background:#0fad40;transform:scale(.98);}
+.btn-g:disabled{background:var(--gdim);color:var(--muted);cursor:not-allowed;}
+.btn-o{background:none;border:1px solid var(--g);color:var(--g);}
+.btn-o:active{background:rgba(18,196,74,.08);transform:scale(.98);}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-gold:active{opacity:.85;transform:scale(.98);}
+.btn-sm{width:auto;display:inline-block;padding:8px 14px;font-size:12px;border-radius:8px;}
+.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px;}
+.ct{background:var(--bg3);border:2px solid var(--bdr);border-radius:12px;padding:13px 8px;text-align:center;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
+.ct.sel{border-color:var(--g);background:var(--gdim);}
+.ct:active{transform:scale(.96);}
+.ct-em{font-size:26px;margin-bottom:4px;}
+.ct-nm{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.ct-ml{font-size:9px;color:var(--muted);margin-top:1px;}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.pm-tile{background:var(--bg2);border:2px solid var(--bdr);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
+.pm-tile.sel{border-color:var(--g);background:var(--bg3);}
+.pm-tile:active{transform:scale(.96);}
+.pm-ic{font-size:24px;margin-bottom:4px;}
+.pm-nm{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.b-active{background:rgba(18,196,74,.14);color:var(--g);}
+.b-paid{background:rgba(240,192,64,.14);color:var(--gold);}
+.b-claimed{background:rgba(255,68,85,.14);color:var(--red);}
+.pol-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:13px;margin-bottom:10px;animation:fu .3s ease both;}
+.pol-id{font-size:9px;font-family:monospace;color:var(--muted);margin-bottom:3px;}
+.pol-nm{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;}
+.pol-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:8px;}
+.pm-item{font-size:10px;color:var(--muted);}
+.pm-item span{color:var(--txt);}
+.pol-ft{display:flex;align-items:center;justify-content:space-between;}
+.iot-big{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;text-align:center;margin:6px 0;}
+.iot-bg{background:var(--bg3);border-radius:20px;height:10px;overflow:hidden;margin:8px 0;}
+.iot-fill{height:100%;border-radius:20px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.rrow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:14px;}
+.rcol{text-align:center;}
+.rbar-w{height:52px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
+.rbar{width:22px;border-radius:3px 3px 0 0;min-height:4px;transition:height .7s ease;}
+.rday{font-size:8px;color:var(--muted);}
+.rmm{font-size:9px;font-weight:600;}
+.chat-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px 0;display:flex;flex-direction:column;gap:8px;}
+.chat-msgs::-webkit-scrollbar{display:none;}
+.cmsg{max-width:84%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55;white-space:pre-line;animation:fu .2s ease;}
+.cmsg.bot{align-self:flex-start;background:var(--bg2);border:1px solid var(--bdr);border-radius:3px 12px 12px 12px;}
+.cmsg.usr{align-self:flex-end;background:var(--gdim);border:1px solid var(--bdr2);border-radius:12px 3px 12px 12px;}
+.chat-ft{padding:9px 0 calc(9px + var(--safe-bot));display:flex;gap:7px;flex-shrink:0;}
+.chat-inp{flex:1;background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:11px 13px;color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;}
+.chat-inp:focus{border-color:var(--g);}
+.chat-snd{background:var(--g);border:none;border-radius:10px;width:46px;font-size:16px;cursor:pointer;}
+.prem-res{background:linear-gradient(135deg,rgba(240,192,64,.07),rgba(18,196,74,.07));border:1px solid rgba(240,192,64,.2);border-radius:12px;padding:15px;text-align:center;margin-bottom:12px;}
+.prem-amt{font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--gold);}
+.prem-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--bdr);color:var(--muted);}
+.prem-row:last-child{border:none;font-weight:600;color:var(--gold);font-size:12px;}
+.prem-row span:last-child{color:var(--txt);}
+.cov-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;}
+.cov-tile{background:var(--bg3);border:2px solid var(--bdr);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
+.cov-tile.sel{border-color:var(--g);background:var(--gdim);}
+.hint{font-size:10px;color:var(--muted);padding:8px 11px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--g);line-height:1.6;margin-bottom:12px;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:rot .6s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes rot{to{transform:rotate(360deg);}}
+.flow-row{font-size:11px;line-height:2.1;color:var(--muted);}
+#toast{position:absolute;bottom:74px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;padding:10px 16px;font-size:12px;z-index:999;opacity:0;transition:all .25s;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.err{border-color:var(--red);color:var(--red);}
+.empty{text-align:center;padding:40px 16px;color:var(--muted);}
+.empty-ic{font-size:44px;opacity:.45;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="toast"></div>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen active" id="s-home">
+  <nav class="gnav">
+    <div class="brand">WII <span>System</span></div>
+    <div class="nbadge"><div class="ndot"></div><span id="netTxt">Live</span></div>
+  </nav>
+  <div class="sb">
+    <div class="hero">
+      <div class="htag">🌾 Maize · IoT · Blockchain · AI</div>
+      <h1>Weather<br/><em>Index Insurance</em></h1>
+      <p>Automated rainfall-based crop protection. IoT sensors detect drought — blockchain triggers your payout instantly.</p>
+      <div class="hstats">
+        <div class="hs"><div class="hs-v" id="h-pol">0</div><div class="hs-l">Policies</div></div>
+        <div class="hs"><div class="hs-v" id="h-rain">--</div><div class="hs-l">7-Day mm</div></div>
+        <div class="hs"><div class="hs-v" id="h-blk">187</div><div class="hs-l">Blocks</div></div>
+      </div>
+    </div>
+    <div class="agrid">
+      <div class="atile" onclick="go('s-reg');nb('nb-reg')" style="animation-delay:.05s">
+        <div class="atile-ic">📋</div>
+        <div class="atile-lbl" style="color:var(--g)">Register Policy</div>
+        <div class="atile-sub">Submit to blockchain</div>
+      </div>
+      <div class="atile" onclick="go('s-pay');nb('nb-pay')" style="animation-delay:.1s">
+        <div class="atile-ic">💳</div>
+        <div class="atile-lbl" style="color:var(--gold)">Pay Premium</div>
+        <div class="atile-sub">EcoCash · Card · Bank</div>
+      </div>
+      <div class="atile" onclick="go('s-iot');nb('nb-iot');loadIoT()" style="animation-delay:.15s">
+        <div class="atile-ic">📡</div>
+        <div class="atile-lbl" style="color:var(--blue)">Realtime Data</div>
+        <div class="atile-sub">Rain gauge · 7-day</div>
+      </div>
+      <div class="atile" onclick="go('s-pol');nb('nb-pol');loadPolicies()" style="animation-delay:.2s">
+        <div class="atile-ic">🗂️</div>
+        <div class="atile-lbl" style="color:var(--teal)">My Policies</div>
+        <div class="atile-sub">View all records</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clbl">⚡ How Payouts Work</div>
+      <div class="flow-row">
+        <div>📡 Rain gauge records daily mm total</div>
+        <div>🔁 Node-RED accumulates 7-day rolling total</div>
+        <div>⚡ If total &lt; WRSI threshold → breach detected</div>
+        <div>⛓️ Smart contract commits payout to Fabric</div>
+        <div style="color:var(--gold)">📧 Email alert → Farmer + Insurer instantly</div>
+        <div style="color:var(--teal)">💳 Payment → EcoCash or mobile money</div>
+      </div>
+    </div>
+  </div>
+  <nav class="navbar">
+    <button class="nb on" id="nb-home" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
+    <button class="nb" id="nb-reg"  onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
+    <button class="nb" id="nb-iot"  onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
+    <button class="nb" id="nb-pol"  onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
+    <button class="nb" id="nb-chat" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+  </nav>
+</div>
+
+<!-- ═══ REGISTER ═══ -->
+<div class="screen" id="s-reg">
+  <div class="topbar">
+    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
+    <div class="tb-title">Register Policy</div>
+  </div>
+  <div class="sb">
+    <div class="fsec">👤 Farmer Details</div>
+    <div class="fgrp"><label class="flbl">Full Name *</label><input class="fin" id="rn" placeholder="e.g. John Moyo" autocomplete="name"/></div>
+    <div class="frow">
+      <div class="fgrp"><label class="flbl">National ID *</label><input class="fin" id="rid" placeholder="63-123456A21"/></div>
+      <div class="fgrp"><label class="flbl">Phone *</label><input class="fin" id="rph" placeholder="+263771234567" type="tel"/></div>
+    </div>
+    <div class="fgrp"><label class="flbl">Email (payout alerts)</label><input class="fin" id="rem" placeholder="email@example.com" type="email"/></div>
+
+    <div class="fsec">🌾 Crop Type *</div>
+    <div class="crop-grid">
+      <div class="ct" id="crop-maize"   onclick="selCrop('maize')"><div class="ct-em">🌽</div><div class="ct-nm">Maize</div><div class="ct-ml">×1.00 premium</div></div>
+      <div class="ct" id="crop-tobacco" onclick="selCrop('tobacco')"><div class="ct-em">🍃</div><div class="ct-nm">Tobacco</div><div class="ct-ml">×1.35 premium</div></div>
+      <div class="ct" id="crop-cotton"  onclick="selCrop('cotton')"><div class="ct-em">☁️</div><div class="ct-nm">Cotton</div><div class="ct-ml">×1.25 premium</div></div>
+      <div class="ct" id="crop-sorghum" onclick="selCrop('sorghum')"><div class="ct-em">🌾</div><div class="ct-nm">Sorghum/Millet</div><div class="ct-ml">×0.85 premium</div></div>
+    </div>
+    <input type="hidden" id="rcrop" value=""/>
+
+    <div class="fsec">🌱 Farm Details</div>
+    <div class="frow">
+      <div class="fgrp"><label class="flbl">Farm Size (acres) *</label><input class="fin" id="rsz" placeholder="e.g. 5.0" type="number" step="0.01" inputmode="decimal" oninput="refreshPreview()"/></div>
+      <div class="fgrp"><label class="flbl">GPS Coordinates</label><input class="fin" id="rgps" placeholder="-19.01, 29.15"/></div>
+    </div>
+    <div class="frow">
+      <div class="fgrp"><label class="flbl">Region *</label>
+        <select class="fsel" id="rreg">
+          <option value="">Select region</option>
+          <option value="mashonaland">Mashonaland</option>
+          <option value="manicaland">Manicaland</option>
+          <option value="matabeleland">Matabeleland</option>
+          <option value="midlands">Midlands</option>
+          <option value="masvingo">Masvingo</option>
+        </select></div>
+      <div class="fgrp"><label class="flbl">Soil Type *</label>
+        <select class="fsel" id="rsoil">
+          <option value="">Select soil</option>
+          <option value="loam">Loam</option>
+          <option value="sandy">Sandy</option>
+          <option value="clay">Clay</option>
+        </select></div>
+    </div>
+    <div class="frow">
+      <div class="fgrp"><label class="flbl">Season *</label><input class="fin" id="rssn" placeholder="2025/2026"/></div>
+      <div class="fgrp"><label class="flbl">Payment Method</label>
+        <select class="fsel" id="rpm">
+          <option value="ecocash">EcoCash</option>
+          <option value="onemoney">OneMoney</option>
+          <option value="card">Card</option>
+          <option value="bank">Bank Transfer</option>
+        </select></div>
+    </div>
+
+    <div class="fsec">🛡️ Cover Type *</div>
+    <div class="cov-grid">
+      <div class="cov-tile sel" id="ct-full" onclick="setCover('full')">
+        <div style="font-size:24px;margin-bottom:4px">🛡️</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--g)">Full Cover</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4">Inputs + Yield Loss<br/>Higher payout</div>
+      </div>
+      <div class="cov-tile" id="ct-partial" onclick="setCover('partial')">
+        <div style="font-size:24px;margin-bottom:4px">🌿</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted)">Partial Cover</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4">Inputs Only<br/>Lower premium</div>
+      </div>
+    </div>
+    <input type="hidden" id="rcoverType" value="full"/>
+
+    <div class="hint">
+      <strong style="color:var(--g)">Full Cover:</strong> pays inputs + expected yield when rainfall fails.<br/>
+      <strong style="color:var(--gold)">Partial Cover:</strong> pays inputs cost only — lower premium.
+    </div>
+
+    <div class="fsec">💰 Financial Inputs</div>
+    <div class="frow">
+      <div class="fgrp"><label class="flbl">Input Cost (USD) *</label><input class="fin" id="rinputCost" placeholder="e.g. 300" type="number" step="0.01" inputmode="decimal" oninput="refreshPreview()"/></div>
+      <div class="fgrp"><label class="flbl">Expected Yield (USD)</label><input class="fin" id="ryieldValue" placeholder="e.g. 800" type="number" step="0.01" inputmode="decimal" oninput="refreshPreview()"/></div>
+    </div>
+
+    <div id="coverPreview" style="display:none;background:linear-gradient(135deg,rgba(240,192,64,.07),rgba(18,196,74,.07));border:1px solid rgba(240,192,64,.22);border-radius:12px;padding:13px;margin-bottom:12px;">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Live Premium Estimate</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px" id="prevLabel">Full Cover</span>
+        <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--gold)" id="prevAmt">$0</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px" id="prevNote"></div>
+    </div>
+
+    <div class="fsec">🧮 ML Dynamic Premium</div>
+    <div id="premBox" style="display:none" class="prem-res">
+      <div class="prem-amt" id="premAmt">$0</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px" id="premMo"></div>
+      <div id="premTable" style="margin-top:12px;text-align:left"></div>
+    </div>
+    <button class="btn btn-o" style="margin-bottom:10px" onclick="calcPremium()">🧮 Calculate ML Premium</button>
+    <button class="btn btn-g" id="submitBtn" onclick="submitPolicy()">⛓️ Submit to Blockchain</button>
+    <button class="btn btn-o" style="margin-top:9px" onclick="clearForm()">🗑 Clear Form</button>
+  </div>
+  <nav class="navbar">
+    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
+    <button class="nb on" id="nb-reg2"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+  </nav>
+</div>
+
+<!-- ═══ PAY ═══ -->
+<div class="screen" id="s-pay">
+  <div class="topbar">
+    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
+    <div class="tb-title">Pay Premium</div>
+  </div>
+  <div class="sb">
+    <div class="fgrp"><label class="flbl">Policy ID *</label><input class="fin" id="ppid" placeholder="WII-XXXXXXXXXX"/></div>
+    <div class="fgrp"><label class="flbl">Amount (USD) *</label><input class="fin" id="pamt" placeholder="Enter amount" type="number" step="0.01" inputmode="decimal"/></div>
+    <div class="fsec">💳 Choose Payment Method</div>
+    <div class="pm-grid">
+      <div class="pm-tile" id="pm-ecocash" onclick="selPM('ecocash')"><div class="pm-ic">📱</div><div class="pm-nm" style="color:#00a550">EcoCash</div><div style="font-size:9px;color:var(--muted);margin-top:1px">*151#</div></div>
+      <div class="pm-tile" id="pm-onemoney" onclick="selPM('onemoney')"><div class="pm-ic">📲</div><div class="pm-nm" style="color:#2244cc">OneMoney</div><div style="font-size:9px;color:var(--muted);margin-top:1px">*111#</div></div>
+      <div class="pm-tile" id="pm-card" onclick="selPM('card')"><div class="pm-ic">💳</div><div class="pm-nm" style="color:var(--gold)">Debit/Credit</div><div style="font-size:9px;color:var(--muted);margin-top:1px">Visa · Mastercard</div></div>
+      <div class="pm-tile" id="pm-bank" onclick="selPM('bank')"><div class="pm-ic">🏦</div><div class="pm-nm" style="color:#9060e0">Bank Transfer</div><div style="font-size:9px;color:var(--muted);margin-top:1px">ZIPIT · RTGS</div></div>
+    </div>
+    <div id="pm-extra"></div>
+    <button class="btn btn-gold" onclick="processPayment()">⛓️ Record Payment on Blockchain</button>
+  </div>
+  <nav class="navbar">
+    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
+    <button class="nb on" id="nb-pay"><div class="ic">💳</div><div>Pay</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+  </nav>
+</div>
+
+<!-- ═══ IOT ═══ -->
+<div class="screen" id="s-iot">
+  <div class="topbar">
+    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
+    <div class="tb-title">📡 Realtime IoT Data</div>
+    <button class="tb-act" onclick="loadIoT()">🔄</button>
+  </div>
+  <div class="sb">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="fin" id="iotFarm" placeholder="Farm ID e.g. FARM001" style="flex:1"/>
+      <button class="btn btn-g btn-sm" onclick="loadIoT()">Load</button>
+    </div>
+    <div class="card">
+      <div class="iot-big" id="iotTotal">-- mm</div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:7px" id="iotMeta">7-Day Total | Stage: MATURATION | Threshold: 30mm</div>
+      <div class="iot-bg"><div class="iot-fill" id="iotBar" style="width:0%;background:var(--g)"></div></div>
+      <div style="text-align:center;font-size:12px;font-weight:600;padding:6px 0" id="iotStatus">Enter Farm ID and tap Load</div>
+      <div class="rrow" id="rRow"></div>
+    </div>
+    <div class="card">
+      <div class="clbl">WRSI Thresholds — Maize</div>
+      <div style="font-size:11px;line-height:2.1">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Sowing (0–21 days)</span><span>20 mm</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Germination (21–35)</span><span>15 mm</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Establishment (35–70)</span><span>25 mm</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--gold);font-weight:600">Maturation ★ (70–100)</span><span style="color:var(--gold);font-weight:600">30 mm</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Harvest (100–120)</span><span>10 mm</span></div>
+      </div>
+    </div>
+  </div>
+  <nav class="navbar">
+    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
+    <button class="nb on" id="nb-iot2"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+  </nav>
+</div>
+
+<!-- ═══ POLICIES ═══ -->
+<div class="screen" id="s-pol">
+  <div class="topbar">
+    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
+    <div class="tb-title">🗂️ My Policies</div>
+    <button class="tb-act" onclick="loadPolicies()">🔄</button>
+  </div>
+  <div class="sb">
+    <div id="polList">
+      <div class="empty"><div class="empty-ic">📋</div><p style="font-size:12px;line-height:1.65">No policies yet.<br/>Register your first policy to get started.</p><br/><button class="btn btn-g btn-sm" onclick="go('s-reg');nb('nb-reg')">Register Now</button></div>
+    </div>
+  </div>
+  <nav class="navbar">
+    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
+    <button class="nb on" id="nb-pol2"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-chat');nb('nb-chat');initChat()"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+  </nav>
+</div>
+
+<!-- ═══ CHAT ═══ -->
+<div class="screen" id="s-chat">
+  <div class="topbar">
+    <button class="tb-back" onclick="go('s-home');nb('nb-home')">← Back</button>
+    <div class="tb-title">🤖 WII Assistant — 24/7</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0 14px;">
+    <div class="chat-wrap">
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="chat-ft">
+        <input class="chat-inp" id="chatInp" placeholder="Ask anything about WII..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="chat-snd" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+  <nav class="navbar">
+    <button class="nb" onclick="go('s-home');nb('nb-home')"><div class="ic">🏠</div><div>Home</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-reg');nb('nb-reg')"><div class="ic">📋</div><div>Register</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-iot');nb('nb-iot');loadIoT()"><div class="ic">📡</div><div>IoT</div><div class="dot"></div></button>
+    <button class="nb" onclick="go('s-pol');nb('nb-pol');loadPolicies()"><div class="ic">🗂️</div><div>Policies</div><div class="dot"></div></button>
+    <button class="nb on" id="nb-chat2"><div class="ic">🤖</div><div>AI Help</div><div class="dot"></div></button>
+  </nav>
+</div>
+</div><!-- #app -->
+
+<script>
+'use strict';
+const LKEY='wii_v3';
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function nb(id){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));const el=document.getElementById(id);if(el)el.classList.add('on');}
+let _tt;
+function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(err?' err':'');clearTimeout(_tt);_tt=setTimeout(()=>t.className='',3200);}
+function selCrop(c){document.getElementById('rcrop').value=c;document.querySelectorAll('.ct').forEach(t=>t.classList.remove('sel'));document.getElementById('crop-'+c).classList.add('sel');toast('🌱 '+c.charAt(0).toUpperCase()+c.slice(1)+' selected');refreshPreview();}
+function setCover(t){document.getElementById('rcoverType').value=t;document.getElementById('ct-full').className='cov-tile'+(t==='full'?' sel':'');document.getElementById('ct-partial').className='cov-tile'+(t==='partial'?' sel':'');refreshPreview();}
+function refreshPreview(){
+  const sz=parseFloat(document.getElementById('rsz')?.value)||0;
+  const ic=parseFloat(document.getElementById('rinputCost')?.value)||0;
+  if(!sz||!ic){document.getElementById('coverPreview').style.display='none';return;}
+  const yv=parseFloat(document.getElementById('ryieldValue')?.value)||0;
+  const ct=document.getElementById('rcoverType').value||'full';
+  const si=ct==='full'?(ic+yv)*sz:ic*sz;
+  const pr=Math.round(si*(ct==='full'?0.08:0.06)*100)/100;
+  document.getElementById('coverPreview').style.display='block';
+  document.getElementById('prevLabel').textContent=ct==='full'?'🛡️ Full Cover':'🌿 Partial Cover';
+  document.getElementById('prevAmt').textContent='$'+pr+'/yr';
+  document.getElementById('prevNote').textContent='Sum insured: $'+Math.round(si)+' | Rate: '+(ct==='full'?'8%':'6%');
+}
+function localCalc(sz,reg,soil,crop){
+  const cr={mashonaland:1.0,manicaland:1.1,matabeleland:1.2,midlands:1.05,masvingo:1.15};
+  const sr={loam:1.0,sandy:1.25,clay:0.9};
+  const crops={maize:1.0,tobacco:1.35,cotton:1.25,sorghum:0.85};
+  return Math.round((50+sz*12*(cr[reg]||1.1)*(sr[soil]||1.0))*(crops[crop]||1.0)*100)/100;
+}
+function calcPremium(){
+  const sz=document.getElementById('rsz').value,reg=document.getElementById('rreg').value,sl=document.getElementById('rsoil').value,crop=document.getElementById('rcrop').value||'maize';
+  if(!sz||!reg||!sl){toast('Fill farm size, region and soil first',true);return;}
+  const p=localCalc(parseFloat(sz),reg,sl,crop),mn=Math.round(p/12*100)/100;
+  const lbl={maize:'Maize ×1.00',tobacco:'Tobacco ×1.35',cotton:'Cotton ×1.25',sorghum:'Sorghum ×0.85'};
+  document.getElementById('premAmt').textContent='$'+p;
+  document.getElementById('premMo').textContent='per year  |  $'+mn+'/month';
+  document.getElementById('premTable').innerHTML=`<div class="prem-row"><span>Base fee</span><span>$50.00</span></div><div class="prem-row"><span>Farm size adj.</span><span>included</span></div><div class="prem-row"><span>Region risk</span><span>included</span></div><div class="prem-row"><span>Soil type adj.</span><span>included</span></div><div class="prem-row"><span>Crop: ${lbl[crop]}</span><span></span></div><div class="prem-row"><span>Annual premium</span><span>$${p}</span></div>`;
+  document.getElementById('premBox').style.display='block';
+  toast('✅ Premium: $'+p);
+}
+function submitPolicy(){
+  const f={'Full Name':document.getElementById('rn').value.trim(),'National ID':document.getElementById('rid').value.trim(),'Phone':document.getElementById('rph').value.trim(),'Farm Size':document.getElementById('rsz').value.trim(),'Region':document.getElementById('rreg').value,'Soil Type':document.getElementById('rsoil').value,'Season':document.getElementById('rssn').value.trim()};
+  const miss=Object.entries(f).filter(([,v])=>!v).map(([k])=>k);
+  if(miss.length){toast('Missing: '+miss.join(', '),true);return;}
+  if(!document.getElementById('rcrop').value){toast('Select a crop type',true);return;}
+  const premium=parseFloat((document.getElementById('premAmt').textContent||'').replace('$',''))||localCalc(parseFloat(f['Farm Size']),f.Region,f['Soil Type'],document.getElementById('rcrop').value);
+  const ct=document.getElementById('rcoverType').value||'full';
+  const policyID='WII-'+(ct==='full'?'F':'P')+'-'+Date.now().toString(36).toUpperCase().slice(-6);
+  const payload={policyID,farmerName:f['Full Name'],idNumber:f['National ID'],phone:f['Phone'],email:document.getElementById('rem').value.trim(),farmSize:parseFloat(f['Farm Size']),soilType:f['Soil Type'],premium,region:f.Region,crop:document.getElementById('rcrop').value,season:f.Season,coverType:ct,paymentMethod:document.getElementById('rpm').value,inputCost:parseFloat(document.getElementById('rinputCost')?.value)||0,yieldValue:parseFloat(document.getElementById('ryieldValue')?.value)||0,gps:document.getElementById('rgps').value.trim(),status:'Active',registered_at:new Date().toISOString()};
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Submitting...';
+  setTimeout(()=>{
+    const local=JSON.parse(localStorage.getItem(LKEY)||'[]');
+    local.push(payload);localStorage.setItem(LKEY,JSON.stringify(local));
+    document.getElementById('h-pol').textContent=local.length;
+    toast('✅ Policy committed! ID: '+policyID);
+    clearForm();btn.disabled=false;btn.innerHTML='⛓️ Submit to Blockchain';
+    setTimeout(()=>{go('s-pol');nb('nb-pol');loadPolicies();},1200);
+  },1500);
+}
+function clearForm(){
+  ['rn','rid','rph','rem','rsz','rgps','rssn','rinputCost','ryieldValue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rreg','rsoil','rpm'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  document.getElementById('premBox').style.display='none';
+  document.getElementById('coverPreview').style.display='none';
+  document.getElementById('rcrop').value='';
+  document.querySelectorAll('.ct').forEach(t=>t.classList.remove('sel'));
+  setCover('full');
+}
+let selMethod=null;
+function selPM(m){
+  selMethod=m;
+  document.querySelectorAll('.pm-tile').forEach(t=>t.classList.remove('sel'));
+  document.getElementById('pm-'+m).classList.add('sel');
+  const x={ecocash:`<div class="fgrp"><label class="flbl">EcoCash Number</label><input class="fin" id="pmRef" placeholder="+263 77 ..." type="tel"/></div>`,onemoney:`<div class="fgrp"><label class="flbl">NetOne Number</label><input class="fin" id="pmRef" placeholder="+263 71 ..." type="tel"/></div>`,card:`<div class="fgrp"><label class="flbl">Card Number</label><input class="fin" id="pmRef" placeholder="1234 5678 9012 3456" inputmode="numeric"/></div><div class="frow"><div class="fgrp"><label class="flbl">Expiry</label><input class="fin" id="pmExp" placeholder="MM/YY"/></div><div class="fgrp"><label class="flbl">CVV</label><input class="fin" id="pmCvv" placeholder="•••" type="password" inputmode="numeric"/></div></div>`,bank:`<div class="fgrp"><label class="flbl">Account Number</label><input class="fin" id="pmRef" placeholder="Bank account number"/></div>`};
+  document.getElementById('pm-extra').innerHTML=x[m]||'';
+}
+function processPayment(){
+  const pid=document.getElementById('ppid').value.trim(),amt=document.getElementById('pamt').value;
+  if(!pid||!amt){toast('Enter Policy ID and Amount',true);return;}
+  if(!selMethod){toast('Choose a payment method',true);return;}
+  const ref=document.getElementById('pmRef')?.value||Math.random().toString(36).slice(2,10).toUpperCase();
+  const pols=JSON.parse(localStorage.getItem(LKEY)||'[]');
+  pols.forEach(p=>{if(p.policyID===pid)p.status='Paid';});
+  localStorage.setItem(LKEY,JSON.stringify(pols));
+  toast('✅ Payment confirmed! Ref: '+ref);
+  document.getElementById('ppid').value='';document.getElementById('pamt').value='';
+}
+function loadIoT(){
+  const farm=(document.getElementById('iotFarm').value.trim()||'FARM001').toUpperCase();
+  const seed=farm.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rnd=(n,mn,mx)=>Math.round(mn+(Math.sin(n*seed*0.37)*0.5+0.5)*(mx-mn));
+  const readings=Array.from({length:7},(_,i)=>({d:String(i+22),mm:rnd(i,0,8)}));
+  const total=readings.reduce((a,r)=>a+r.mm,0);
+  const thr=30,pct=Math.min(100,Math.round(total/thr*100));
+  const col=pct<40?'var(--red)':pct<70?'var(--gold)':'var(--g)';
+  document.getElementById('iotTotal').textContent=total+' mm';
+  document.getElementById('iotTotal').style.color=col;
+  document.getElementById('iotMeta').textContent='7-Day Total  |  Stage: MATURATION  |  Threshold: '+thr+'mm';
+  const bar=document.getElementById('iotBar');bar.style.width=pct+'%';bar.style.background=col;
+  const st=document.getElementById('iotStatus');
+  if(pct<40){st.textContent='🚨 BREACH — Payout triggered!';st.style.color='var(--red)';}
+  else if(pct<70){st.textContent='⚠️ LOW — '+pct+'% of threshold';st.style.color='var(--gold)';}
+  else{st.textContent='✅ ADEQUATE — '+pct+'% of threshold';st.style.color='var(--g)';}
+  document.getElementById('h-rain').textContent=total+'mm';
+  const maxMM=Math.max(...readings.map(r=>r.mm),10);
+  document.getElementById('rRow').innerHTML=readings.map(r=>{
+    const h=Math.max(4,Math.round(r.mm/maxMM*46));
+    const c=r.mm<2?'var(--red)':r.mm<4?'var(--gold)':'var(--g)';
+    return `<div class="rcol"><div class="rbar-w"><div class="rbar" style="height:${h}px;background:${c}"></div></div><div class="rday">${r.d}</div><div class="rmm" style="color:${c}">${r.mm}</div></div>`;
+  }).join('');
+  toast('📡 IoT data loaded for '+farm);
+}
+function loadPolicies(){
+  const pols=JSON.parse(localStorage.getItem(LKEY)||'[]');
+  document.getElementById('h-pol').textContent=pols.length;
+  if(!pols.length){
+    document.getElementById('polList').innerHTML=`<div class="empty"><div class="empty-ic">📋</div><p style="font-size:12px;line-height:1.65">No policies yet.<br/>Register your first policy to get started.</p><br/><button class="btn btn-g btn-sm" onclick="go('s-reg');nb('nb-reg')">Register Now</button></div>`;return;
+  }
+  document.getElementById('polList').innerHTML=pols.slice().reverse().map(p=>{
+    const st=p.status||'Active',bc=st==='Active'?'b-active':st==='Paid'?'b-paid':'b-claimed';
+    return `<div class="pol-card"><div class="pol-id">🔖 ${p.policyID}</div><div class="pol-nm">${p.farmerName}</div><div class="pol-meta"><div class="pm-item">🌱 Crop: <span>${(p.crop||'maize').charAt(0).toUpperCase()+(p.crop||'maize').slice(1)}</span></div><div class="pm-item">📐 Size: <span>${p.farmSize} ac</span></div><div class="pm-item">🗺 Region: <span>${p.region}</span></div><div class="pm-item">🏔 Soil: <span>${p.soilType}</span></div><div class="pm-item">📅 Season: <span>${p.season}</span></div><div class="pm-item">💰 Premium: <span style="color:var(--gold)">$${p.premium}/yr</span></div></div><div class="pol-ft"><span class="badge ${bc}">${st}</span><button class="btn btn-gold btn-sm" onclick="prefillPay('${p.policyID}','${p.premium}')">Pay Now</button></div></div>`;
+  }).join('');
+}
+function prefillPay(pid,amt){document.getElementById('ppid').value=pid;document.getElementById('pamt').value=amt;go('s-pay');nb('nb-pay');}
+const KB={'hello|hi|hey':"Hello! 👋 I'm the WII Assistant.\n\nAsk me about:\n• Registering a policy\n• Premium calculation\n• WRSI thresholds\n• How payouts work\n• Payment methods\n• Blockchain records",'register|policy':"📋 To register a policy:\n1. Tap 'Register' in menu\n2. Fill personal details\n3. Select your crop type\n4. Enter farm details\n5. Calculate ML Premium\n6. Submit to Blockchain\n\nYour policy is stored on Hyperledger Fabric! ⛓️",'premium|cost|calculate':"💰 Premium is ML-calculated:\n\nBase: $50\n+ Farm size × $12/acre\n× Region risk (1.0–1.2×)\n× Soil type (0.9–1.25×)\n× Crop multiplier\n\nFull Cover: 8% of sum insured\nPartial Cover: 6% of sum insured",'payout|claim|automatic':"💸 Automatic Payouts:\n\n1. 📡 IoT gauge records mm/day\n2. 🔁 Node-RED rolls 7-day total\n3. ⚡ Below WRSI threshold → BREACH\n4. ⛓️ Smart contract commits\n5. 📧 Email alert sent\n6. 💳 EcoCash payment triggered\n\nFully automatic — no claims!",'wrsi|threshold|breach|rainfall':"🌧️ WRSI Maize Thresholds:\n\nSowing: 20mm\nGermination: 15mm\nEstablishment: 25mm\nMaturation ★: 30mm ← CRITICAL\nHarvest: 10mm\n\nDropping below threshold\ntriggers automatic payout.",'ecocash|payment|mobile':"💳 Payment Methods:\n\n📱 EcoCash — *151#\n📲 OneMoney — *111#\n💳 Card — Visa/Mastercard\n🏦 Bank — ZIPIT/RTGS\n\nAll recorded on blockchain.",'iot|sensor|gauge':"📡 IoT Hardware:\n\nESP32 + Tipping Bucket Gauge\n(0.2mm per tip)\nDHT22 temp + soil moisture\nMQTT → Node-RED\n\n7-day rolling total checked\ndaily against WRSI.",'blockchain|fabric|ledger':"⛓️ Hyperledger Fabric:\n\nChannel: wii-channel\nOrgs: Insurance, Farmer,\n       Regulator\nChaincode: wii-contract (Go)\n\nImmutable · Transparent\nAutomatic · Auditable",'thank|thanks|great':"You're welcome! 😊\n\nYour IoT gauge monitors your\nfarm 24/7. Rainfall deficit\ntriggers automatic payout.\n\nHave a great farming season! 🌾"};
+function botReply(t){const l=t.toLowerCase();for(const[k,v]of Object.entries(KB))if(k.split('|').some(w=>l.includes(w)))return v;return "I'm not sure. 🤔\n\nTry asking about:\n• 'register policy'\n• 'premium calculation'\n• 'WRSI thresholds'\n• 'how payouts work'\n• 'payment methods'";}
+let _ci=false;
+function initChat(){if(_ci)return;_ci=true;addMsg("Hello! 👋 I'm the WII Assistant — 24/7.\n\nAsk me about policies, premiums, IoT payouts, or payments. 🌾",'bot');}
+function addMsg(t,w){const b=document.getElementById('chatMsgs'),d=document.createElement('div');d.className='cmsg '+w;d.textContent=t;b.appendChild(d);b.scrollTop=b.scrollHeight;}
+function sendChat(){const i=document.getElementById('chatInp'),t=i.value.trim();if(!t)return;i.value='';addMsg(t,'usr');setTimeout(()=>addMsg(botReply(t),'bot'),280);}
+// init
+const _l=JSON.parse(localStorage.getItem(LKEY)||'[]');
+document.getElementById('h-pol').textContent=_l.length;
+</script>
+</body>
+</html>
