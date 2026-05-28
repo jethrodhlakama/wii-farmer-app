@@ -22,12 +22,6 @@ const config: CapacitorConfig = {
       style: 'DARK',
       resizeOnFullScreen: true,
     },
-    SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: '#060f08',
-      androidSplashResourceName: 'splash',
-      showSpinner: false,
-    },
   },
 };
 
