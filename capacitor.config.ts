@@ -10,6 +10,7 @@ const config: CapacitorConfig = {
     captureInput: true,
     webContentsDebuggingEnabled: false,
     backgroundColor: '#060f08',
+    handleExitOnBackPress: true,
   },
   plugins: {
     StatusBar: {
@@ -22,6 +23,10 @@ const config: CapacitorConfig = {
       style: 'DARK',
       resizeOnFullScreen: true,
     },
+  },
+  server: {
+    androidScheme: 'https',
+    cleartext: true,
   },
 };
 
