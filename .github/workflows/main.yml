@@ -23,13 +23,14 @@ jobs:
         run: npx cap add android
       - name: Sync web assets
         run: npx cap sync android
-      - name: Enable cleartext & mixed content for Maps API
+      - name: Fix AndroidManifest permissions
         run: |
-          sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml || true
-          grep -q 'usesCleartextTraffic' android/app/src/main/AndroidManifest.xml || sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
-      - name: Add INTERNET permission
-        run: |
-          grep -q 'INTERNET' android/app/src/main/AndroidManifest.xml || sed -i 's/<application/\<uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"\/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"\/>\n    <application/' android/app/src/main/AndroidManifest.xml
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i 's/<manifest/<manifest/' $MANIFEST
+          sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n    <application|' $MANIFEST
+          sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/' $MANIFEST || true
+          grep -q 'usesCleartextTraffic' $MANIFEST || sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $MANIFEST
+          cat $MANIFEST
       - name: Build APK
         run: |
           chmod +x android/gradlew
